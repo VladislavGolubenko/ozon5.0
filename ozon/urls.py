@@ -7,7 +7,7 @@ from django.urls import path, include
 from .router import router
 from .yasg import urlpatterns as doc_urls
 
-from product.urls import test_action
+from product.views import test_action
 
 
 urlpatterns = [

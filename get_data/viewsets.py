@@ -2,6 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework import permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django_filters import rest_framework as filters
 
 from .models import *
 from .serializers import *
@@ -32,5 +33,8 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class TransactionViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
+
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_fields = ('id_user',)

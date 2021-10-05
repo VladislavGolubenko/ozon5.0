@@ -46,6 +46,11 @@ class UserManager(BaseUserManager):
 
         return self._create_user(email, password, **extra_fields)
 
+    def update_ozon_user(self, ozon_id, api_key):
+
+        ozon_user = self.update(ozon_id=ozon_id, api_key=api_key)
+        return ozon_user
+
 
 class User(AbstractBaseUser, PermissionsMixin):
 
@@ -83,10 +88,15 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     date_create = models.DateTimeField(auto_now_add=True, blank=True, null=True, verbose_name="Дата регистрации")
     is_staff = models.BooleanField(default=False, verbose_name="Персонал")
-    is_active = models.BooleanField(default=False, verbose_name='Активный пользователь')
+    is_active = models.BooleanField(default=True, verbose_name='Активный пользователь')
     is_superuser = models.BooleanField(default=False, verbose_name="Администратор")
     post_agreement = models.BooleanField(default=True, verbose_name="Согласие на отправку писем")
     card = models.CharField(max_length=16, null=True, blank=True, verbose_name="Карта")
+    card_year = models.CharField(max_length=5, null=True, blank=True, verbose_name="Срок действия карты", default="Null")
+    card_ovner = models.CharField(max_length=250, null=True, blank=True, verbose_name="Данные владельца карты", default="Null")
+
+    ozon_id = models.IntegerField(verbose_name="ID пользователя OZON", default=0, blank=True, null=True)
+    api_key = models.CharField(max_length=500, verbose_name="API ключ OZON", default='Null', blank=True, null=True)
 
     name_org = models.CharField(max_length=256, null=True, blank=True, verbose_name="Название организации")
     inn = models.CharField(max_length=12, null=True, blank=True, verbose_name="ИНН")
@@ -110,7 +120,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         for user_transaction in user_transaction_query:
             return_transaction = return_transaction + f'Номер транзакции:  {user_transaction.transaction_number}, ' \
                                                       f'\n Дата транзакции:  {user_transaction.date_issued}, \n ' \
-                                                      f'Тип оплаты:  {user_transaction.payment_type}, \n Тариф: ' \
+                                                      f'Тип оплаты:  {user_transaction.type}, \n Тариф: ' \
                                                       f'  {user_transaction.rate}, \n Сумма:  {user_transaction.summ} \n \n \n'
 
         return return_transaction
@@ -123,13 +133,25 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+class PaymentType(models.Model):
+
+    type = models.CharField(max_length=100, default='card', verbose_name="Способ оплаты")
+    description = models.CharField(max_length=1000, verbose_name="Описание способа оплаты")
+
+    def __str__(self):
+        return str(self.type)
+
+    class Meta:
+        verbose_name = 'способ оплаты'
+        verbose_name_plural = 'способы оплаты'
+        ordering = ['type']
 
 class Transaction(models.Model):
 
     id_user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name="user_transaction", verbose_name='Пользователь')
     transaction_number = models.CharField(max_length=200, default='000000000000000', verbose_name="Номер транзакции")
     date_issued = models.DateTimeField(auto_now_add=True, verbose_name="Дата выполнения")
-    payment_type = models.CharField(max_length=100, default='card payment', verbose_name='Способ оплаты')
+    type = models.ForeignKey(PaymentType, on_delete=models.CASCADE, blank=True, null=True, related_name="payment_transaction", verbose_name='Способ оплаты')
     rate = models.CharField(max_length=100, default='base', verbose_name="Тариф")
     summ = models.IntegerField(default=0, verbose_name='Сумма списания')
     status = models.CharField(max_length=100, default='wait', verbose_name='Статус')

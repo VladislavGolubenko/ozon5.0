@@ -12,7 +12,7 @@ class ProductAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('user_id', 'ozon_product_id', 'sku', 'name', 'unit_price',
+            'fields': ('preview', 'user_id', 'ozon_product_id', 'sku', 'name', 'unit_price',
                     'logistics_price', 'additional_price', 'summ_price')
         }),
 
