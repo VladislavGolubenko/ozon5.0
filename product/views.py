@@ -22,8 +22,10 @@ class ProductAction(APIView):
         return Response(serializer_class.data)
 
 
-def test_action(request):
-    user_data = User.objects.get(pk=request.user.id)
+def test_action(request, email):
+
+    # user_data = User.objects.get(pk=request.user.id)
+    user_data = User.objects.get(email=email)
     ozon_ovner = str(user_data.ozon_id)
     request_post = requests.post('https://api-seller.ozon.ru/v1/product/list',  headers={'Client-Id': ozon_ovner, 'Api-Key': user_data.api_key, 'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
     request_json = request_post.json()
@@ -75,7 +77,7 @@ def test_action(request):
         print('Это id', ozon_id)
         print('это тип id', type(ozon_id))
         ozon_id = int(ozon_id)
-        Product.objects.create_product(preview=preview, ozon_product_id=ozon_id, sku=sku, name=name, stock_balance=balance, way_to_warehous=go_to_warehouse, user_id=request.user)
+        Product.objects.create_product(preview=preview, ozon_product_id=ozon_id, sku=sku, name=name, stock_balance=balance, way_to_warehous=go_to_warehouse, user_id=user_data.id)
 
     return HttpResponse('<h1>получаем данные продуктов по api</h1>')
 

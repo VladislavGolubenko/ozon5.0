@@ -34,6 +34,17 @@ ALLOWED_HOSTS = [ '*'
     # '127.0.0.1',
 ]
 
+CELERY_TIMEZONE = "Europe/Moscow"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_BROKER_TRANSPORT_OPTIONS = {'vasability_timeout': 3600}
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER ='json'
+
+
 CORS_ORIGIN_ALLOW_ALL = True
 SESSION_COOKIE_SAMESITE = None
 SESSION_COOKIE_SAMESITE_FORCE_ALL = True
@@ -77,7 +88,8 @@ INSTALLED_APPS = [
     'drf_yasg',
     'corsheaders',
     'django_filters',
-
+    'django_celery_beat',
+    'django_celery_results',
 
     'product.apps.ProductConfig',
     'get_data.apps.GetDataConfig',
