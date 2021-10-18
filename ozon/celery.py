@@ -1,5 +1,6 @@
 import os
 from celery import Celery
+from celery.schedules import crontab
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ozon.settings')
 
@@ -10,6 +11,6 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     'update_product_order': {
         'task': 'product.tasks.update_product_order',
-        'schedule': 15.0,
+        'schedule': crontab(hour=0, minute=0),
     }
 }

@@ -46,13 +46,17 @@ class UserManager(BaseUserManager):
 
         return self._create_user(email, password, **extra_fields)
 
-    def update_ozon_user(self, ozon_id, api_key):
-
-        ozon_user = self.update(ozon_id=ozon_id, api_key=api_key)
-        return ozon_user
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+
+    @property
+    def new_password(self):
+        return None
+
+    @new_password.setter
+    def new_password(self, value):
+        pass
 
     USER = "user"
     ADMIN = "admin"
@@ -112,7 +116,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ["password"]
     objects = UserManager()
 
-    # @classmethod
     def transaction_data(self):
         user_transaction_query = Transaction.objects.filter(id_user=self.id)
         return_transaction = ''
