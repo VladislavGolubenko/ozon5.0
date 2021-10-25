@@ -14,17 +14,24 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
     def update(self, instance, validated_data):
+
         if validated_data.get("api_key") is not None:
+
             ozon_id = str(validated_data['ozon_id'])
             api_key = validated_data['api_key']
 
             api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list',  headers={'Client-Id': ozon_id, 'Api-Key': api_key, 'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
+            user = User.objects.get(email=validated_data.get("email"))
 
-            if api_key_isset.status_code == 200:
+            if api_key_isset.status_code == 200 and user.password == instance.password:
+
                 for attr, value in validated_data.items():
                     setattr(instance, attr, value)
+
+                password = validated_data.get("password", None)
+                instance.set_password(password)
+
                 instance.save()
-                print('после сохранения', validated_data['email'])
                 get_product.delay(validated_data['email'])
                 get_order.delay(validated_data['email'])
                 return instance
@@ -34,6 +41,7 @@ class UserSerializer(serializers.ModelSerializer):
                 )
 
         elif validated_data.get("new_password") is not None:
+            print('заходит в сохранение нового пароля')
             user = User.objects.get(email=validated_data.get("email"))
             if user.password == instance.password:
                 for attr, value in validated_data.items():
@@ -49,6 +57,7 @@ class UserSerializer(serializers.ModelSerializer):
                     detail={"Invalid password, please enter correct password": "404"}
                 )
         else:
+            print('заходит в элс')
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
             instance.save()

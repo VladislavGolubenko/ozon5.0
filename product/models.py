@@ -12,9 +12,12 @@ class ProductManager(models.Manager):
     #     product = self.update
 
 class OrderManager(models.Manager):
-    def create_order(self, order_id, in_process_at, sku, name, quantity, price, user_id):
-        order = self.create(order_number=order_id, date_of_order=in_process_at, sku=sku, name=name, number=quantity, price=price, user_id=user_id)
+    def create_order(self, order_id, in_process_at, sku, name, quantity, price, user_id, offer_id, delivery_place, warehouse_name, comission_amount, amount, status):
+        order = self.create(order_number=offer_id, date_of_order=in_process_at, sku=sku, name=name, number=quantity,
+                            price=price, user_id=user_id, order_place=delivery_place,
+                            shipping_warehouse=warehouse_name, comission=comission_amount, profit=amount, status=status)
         return order
+
 
 class Product(models.Model):
 
@@ -23,7 +26,7 @@ class Product(models.Model):
     sku = models.CharField(max_length=100, verbose_name='SKU')
     name = models.CharField(max_length=300, verbose_name='Название товара')
     days_for_production = models.IntegerField(blank=True, null=True, verbose_name='Времени необходимо для производства')
-    reorder_days_of_supply = models.IntegerField(blank=True, null=True, verbose_name='Дни повторного заказа поставки')
+    reorder_days_of_supply = models.IntegerField(blank=True, null=True, verbose_name='Глубина поставки')
     unit_price = models.IntegerField(blank=True, null=True, default=0, verbose_name='Цена юнита')
     logistics_price = models.IntegerField(blank=True, null=True, default=0, verbose_name='Цена логистики')
     additional_price = models.IntegerField(blank=True, null=True, default=0, verbose_name='Дополнительные затраты')
@@ -65,17 +68,16 @@ class Order(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="order_to_user", null=True, blank=True)
 
     name = models.CharField(max_length=300, verbose_name='Название товара')
-    order_number = models.IntegerField(verbose_name="Номер заказа")
+    order_number = models.CharField(max_length=500, verbose_name="Номер заказа")
     sku = models.CharField(max_length=100, verbose_name='SKU')
     date_of_order = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="Дата и время размещения заказа")
     order_place = models.CharField(max_length=1000, verbose_name="Куда заказан товар", null=True, blank=True)
     shipping_warehouse = models.CharField(max_length=2000, verbose_name="Склад отгрузки", null=True, blank=True)
     number = models.IntegerField(verbose_name="Количество")
-    price = models.CharField(max_length=50, verbose_name="Цена")
+    price = models.CharField(max_length=50, verbose_name="Cумма заказа")
     comission = models.IntegerField(verbose_name="Сумма комиссий", null=True, blank=True)
     profit = models.IntegerField(verbose_name="Прибыль", null=True, blank=True)
     status = models.CharField(max_length=100, verbose_name="Статус заказ", null=True, blank=True)
-    linck_to_ozon = models.CharField(max_length=400, verbose_name="Посмотреть заказ в личном кабинете", null=True, blank=True)
 
     def __str__(self):
         return str(self.name)

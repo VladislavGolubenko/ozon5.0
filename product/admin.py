@@ -35,7 +35,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 class OrderAdmin(admin.ModelAdmin):
 
-    list_display = ('name', 'order_number', 'sku', 'date_of_order', 'order_place', 'shipping_warehouse', 'number', 'price', 'comission', 'profit', 'status', 'linck_to_ozon')
+    list_display = ('name', 'order_number', 'sku', 'date_of_order', 'order_place', 'shipping_warehouse', 'number', 'price', 'comission', 'profit', 'status')
 
 
 admin.site.register(Product, ProductAdmin)

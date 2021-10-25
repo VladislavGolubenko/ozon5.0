@@ -59,25 +59,27 @@ def get_product(email, *args, **kwargs):
             return_product = 0  # кол-во возвращенных товаров
 
         go_to_warehouse = return_product + coming  # в пути на склад (поставки + возвращенные товары)
-
-        # print(ozon_id, preview, name, sku, warehouse_balance, go_to_warehouse)
-        # print('Это id', ozon_id)
-        # print('это тип id', type(ozon_id))
         ozon_id = int(ozon_id)
 
         Product.objects.create_product(preview=preview, ozon_product_id=ozon_id, sku=sku, name=name,
                                        stock_balance=balance, way_to_warehous=go_to_warehouse, user_id=user_data)
 
 
-@app.task
-def get_order(email):
-
+@app.task(bind=True)
+def get_order(email, *args, **kwargs):
     from product.models import Order
 
-    user_data = User.objects.get(email=email)
+    user_data = User.objects.get(email='admin@gmail.com')
     ozon_ovner = str(user_data.ozon_id)
     request_post = requests.post('https://api-seller.ozon.ru/v2/posting/fbo/list',
-                                 json={"dir": "asc", "filter": {"since": "2021-06-24T14:15:22Z", "to": "2021-10-06T14:15:22Z"}, "limit":  1000},
+                                 json={"dir": "asc",
+                                       "filter": {"since": "2021-06-24T14:15:22Z", "to": "2021-10-06T14:15:22Z"},
+                                       "limit": 1000,
+                                       "with": {
+                                           "analytics_data": True,
+                                           "financial_data": True,
+                                       }
+                                       },
                                  headers={'Client-Id': ozon_ovner, 'Api-Key': user_data.api_key,
                                           'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
     request_json = request_post.json()
@@ -91,20 +93,46 @@ def get_order(email):
 
         order_id = order['order_id']
         in_process_at = order['in_process_at']
+        status = order['status']  # новое поле
 
         for items in order['products']:
             sku = items['sku']
             name = items['name']
             quantity = items['quantity']
-            price = items['price']
+            offer_id = items['offer_id']
 
-        # !!!!!!!!!!!!!!!!analitics_data передает None !!!!!!!!!!!!!!!!!!!!!!!!!!!
+        if order['analytics_data'] is not None:
+            analitics_data = order['analytics_data']
+            delivery_place = analitics_data['city'] + analitics_data['region']
+            warehouse_name = analitics_data['warehouse_name']
+        else:
+            delivery_place = None
+            warehouse_name = None
 
-        # print(type(order['analytics_data']))
-        # for items in order['analytics_data']:
-        #     print(items['region'], items['city'], items['warehouse_name'])
+        if order['financial_data'] is not None:
+            financial_data = order['financial_data']
 
-        Order.objects.create_order(order_id=order_id, in_process_at=in_process_at, sku=sku, name=name, quantity=quantity, price=price, user_id=user_data)
+            order_products = financial_data['products']
+            summ_order_price = sum(
+                [order_product['quantity'] * order_product['price'] for order_product in order_products])
+
+            if status == 'delivered' or status == 'cancelled':
+                comission_amount = sum([order_product['commission_amount'] for order_product in order_products])
+
+                for order_product in order_products:
+                    if order_product['picking'] is not None:
+                        amount = sum(order_product['picking'].amount)
+                    else:
+                        amount = None
+        else:
+            summ_order_price = None
+            comission_amount = None
+            amount = None
+
+        Order.objects.create_order(order_id=order_id, in_process_at=in_process_at, sku=sku, name=name,
+                                   quantity=quantity, price=summ_order_price, user_id=user_data, offer_id=offer_id,
+                                   delivery_place=delivery_place, warehouse_name=warehouse_name,
+                                   comission_amount=comission_amount, amount=amount, status=status)
 
 
 @app.task(bind=True)
@@ -129,10 +157,16 @@ def update_product_order(*args, **kwargs):
         api_key = data.api_key
 
         # Заказы
+
         request_post = requests.post('https://api-seller.ozon.ru/v2/posting/fbo/list',
                                      json={"dir": "asc",
                                            "filter": {"since": "2021-06-24T14:15:22Z", "to": "2021-10-06T14:15:22Z"},
-                                           "limit": 1000},
+                                           "limit": 1000,
+                                           "with": {
+                                                  "analytics_data": True,
+                                                  "financial_data": True,
+                                              }
+                                           },
                                      headers={'Client-Id': ozon_ovner, 'Api-Key': api_key,
                                               'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
         request_json = request_post.json()
@@ -147,21 +181,49 @@ def update_product_order(*args, **kwargs):
 
                 order_id = order['order_id']
                 in_process_at = order['in_process_at']
+                status = order['status']
 
                 for items in order['products']:
                     sku = items['sku']
                     name = items['name']
                     quantity = items['quantity']
-                    price = items['price']
+                    offer_id = items['offer_id']
 
-                # !!!!!!!!!!!!!!!!analitics_data передает None !!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-                # print(type(order['analytics_data']))
-                # for items in order['analytics_data']:
-                #     print(items['region'], items['city'], items['warehouse_name'])
+                    if order['analytics_data'] is not None:
+                        analitics_data = order['analytics_data']
+                        delivery_place = analitics_data['city'] + analitics_data['region']
+                        warehouse_name = analitics_data['warehouse_name']
+                    else:
+                        delivery_place = None
+                        warehouse_name = None
+
+                    if order['financial_data'] is not None:
+                        financial_data = order['financial_data']
+
+                        order_products = financial_data['products']
+                        summ_order_price = sum(
+                            [order_product['quantity'] * order_product['price'] for order_product in order_products])
+
+                        if status == 'delivered' or status == 'cancelled':
+                            comission_amount = sum([order_product['commission_amount'] for order_product in order_products])
+
+                            for order_product in order_products:
+                                if order_product['picking'] is not None:
+                                    amount = sum(order_product['picking'].amount)
+                                else:
+                                    amount = None
+                    else:
+                        summ_order_price = None
+                        comission_amount = None
+                        amount = None
 
                 Order.objects.create_order(order_id=order_id, in_process_at=in_process_at, sku=sku, name=name,
-                                           quantity=quantity, price=price, user_id=data)
+                                           quantity=quantity, price=summ_order_price, user_id=user_data, offer_id=offer_id,
+                                           delivery_place=delivery_place, warehouse_name=warehouse_name,
+                                           comission_amount=comission_amount, amount=amount, status=status)
+
+
 
         # Товары
         request_post = requests.post('https://api-seller.ozon.ru/v1/product/list',
