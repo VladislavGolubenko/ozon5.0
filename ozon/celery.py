@@ -11,6 +11,6 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     'update_product_order': {
         'task': 'product.tasks.update_product_order',
-        'schedule': crontab(hour=0, minute=0),
+        'schedule': crontab(minute=0, hour=0),
     }
 }

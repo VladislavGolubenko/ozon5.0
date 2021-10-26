@@ -33,6 +33,11 @@ def get_product(email, *args, **kwargs):
         ozon_id = product_json['id']
         preview = product_json['primary_image']
 
+        if product_json['marketing_price'] is not 0.0 or product_json['marketing_price'] is not None:
+            marketing_price = product_json['marketing_price']
+        else:
+            marketing_price = product_json['price']
+
         sources = product_json['sources']
 
         for source in sources:
@@ -61,8 +66,8 @@ def get_product(email, *args, **kwargs):
         go_to_warehouse = return_product + coming  # в пути на склад (поставки + возвращенные товары)
         ozon_id = int(ozon_id)
 
-        Product.objects.create_product(preview=preview, ozon_product_id=ozon_id, sku=sku, name=name,
-                                       stock_balance=balance, way_to_warehous=go_to_warehouse, user_id=user_data)
+        Product.objects.create_product(preview=preview, ozon_product_id=ozon_id, sku=sku, name=name, stock_balance=balance,
+                                       way_to_warehous=go_to_warehouse, marketing_price=marketing_price, user_id=user_data)
 
 
 @app.task(bind=True)
@@ -71,6 +76,7 @@ def get_order(email, *args, **kwargs):
 
     user_data = User.objects.get(email='admin@gmail.com')
     ozon_ovner = str(user_data.ozon_id)
+
     request_post = requests.post('https://api-seller.ozon.ru/v2/posting/fbo/list',
                                  json={"dir": "asc",
                                        "filter": {"since": "2021-06-24T14:15:22Z", "to": "2021-10-06T14:15:22Z"},
@@ -94,11 +100,13 @@ def get_order(email, *args, **kwargs):
         order_id = order['order_id']
         in_process_at = order['in_process_at']
         status = order['status']  # новое поле
+        quantity = 0
+
 
         for items in order['products']:
             sku = items['sku']
             name = items['name']
-            quantity = items['quantity']
+            quantity += items['quantity']
             offer_id = items['offer_id']
 
         if order['analytics_data'] is not None:
@@ -219,7 +227,7 @@ def update_product_order(*args, **kwargs):
                         amount = None
 
                 Order.objects.create_order(order_id=order_id, in_process_at=in_process_at, sku=sku, name=name,
-                                           quantity=quantity, price=summ_order_price, user_id=user_data, offer_id=offer_id,
+                                           quantity=quantity, price=summ_order_price, user_id=data, offer_id=offer_id,
                                            delivery_place=delivery_place, warehouse_name=warehouse_name,
                                            comission_amount=comission_amount, amount=amount, status=status)
 
@@ -280,7 +288,6 @@ def update_product_order(*args, **kwargs):
 
                 ozon_id = int(ozon_id)
 
-                Product.objects.create_product(preview=preview, ozon_product_id=ozon_id, sku=sku, name=name,
-                                               stock_balance=balance, way_to_warehous=go_to_warehouse, user_id=data)
+                Product.objects.create_product(preview=preview, ozon_product_id=ozon_id, sku=sku, name=name, stock_balance=balance, way_to_warehous=go_to_warehouse, user_id=data)
 
 

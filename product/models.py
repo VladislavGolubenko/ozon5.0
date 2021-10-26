@@ -4,8 +4,8 @@ from django.db.models.signals import post_save, pre_save
 
 
 class ProductManager(models.Manager):
-    def create_product(self, preview, ozon_product_id, sku, name, stock_balance, way_to_warehous, user_id):
-        product = self.create(preview=preview, ozon_product_id=ozon_product_id, sku=sku, name=name, stock_balance=stock_balance, way_to_warehous=way_to_warehous, user_id=user_id)
+    def create_product(self, preview, ozon_product_id, sku, name, stock_balance, way_to_warehous, marketing_price, user_id):
+        product = self.create(preview=preview, ozon_product_id=ozon_product_id, sku=sku, name=name, stock_balance=stock_balance, way_to_warehous=way_to_warehous, marketing_price=marketing_price, user_id=user_id)
         return product
     #
     # def math_data_product(self, days_for_production, reorder_days_of_supply, unit_price, logistics_price, additional_price, summ_price, stock_balance, history, average_order_speed, status, reordering_date, need_to_order, reorder_summ, reorder_profit, stock_for_days, deliveries, return_product, way_to_warehous, stock_profit, stock_price, potential_profit, average_unit_profit):
@@ -31,6 +31,8 @@ class Product(models.Model):
     logistics_price = models.IntegerField(blank=True, null=True, default=0, verbose_name='Цена логистики')
     additional_price = models.IntegerField(blank=True, null=True, default=0, verbose_name='Дополнительные затраты')
     summ_price = models.IntegerField(blank=True, null=True, verbose_name='Итого')
+
+    marketing_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена')  # Поле равное маркетинг прайс или в случае нуля обычной цене (получается по апи)
 
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="products_to_user", null=True, blank=True)
     # products = models.ManyToManyField(Product, related_name="user_to_products", null=True, blank=True)
