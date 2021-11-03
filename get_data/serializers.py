@@ -2,10 +2,30 @@ import requests
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
 from .models import *
-from product.tasks import get_product, get_order
+from product.tasks import get_product, get_order, get_ozon_transaction
 
 
 class UserSerializer(serializers.ModelSerializer):
+
+    """
+    Сериализатор для создания пользователя, изменения пароля или данных для подключения к ozon.
+
+    Обязательные поля:
+        email
+        password
+
+    Поля которые необходимо указывать при сохранении данных ozon:
+        email
+        password
+        ozon_id
+        api_key
+
+    Поля которые необходимо указывать при изменении пароля:
+        email
+        password
+        new_password
+    """
+
     def create(self, validated_data):
         user = User(**validated_data)
         password = validated_data.get("password", None)
@@ -19,6 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
 
             ozon_id = str(validated_data['ozon_id'])
             api_key = validated_data['api_key']
+            email = str(validated_data.get('email'))
 
             api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list',  headers={'Client-Id': ozon_id, 'Api-Key': api_key, 'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
             user = User.objects.get(email=validated_data.get("email"))
@@ -32,8 +53,9 @@ class UserSerializer(serializers.ModelSerializer):
                 instance.set_password(password)
 
                 instance.save()
-                get_product.delay(validated_data['email'])
-                get_order.delay(validated_data['email'])
+                # get_product.delay(email=email)
+                # get_order.delay(email=email)
+                get_ozon_transaction.delay(email=email)
                 return instance
             else:
                 raise ValidationError(
@@ -57,7 +79,6 @@ class UserSerializer(serializers.ModelSerializer):
                     detail={"Invalid password, please enter correct password": "404"}
                 )
         else:
-            print('заходит в элс')
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
             instance.save()
@@ -67,7 +88,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("id", "email", "password", "first_name", "last_name", "patronymic", "role", "date_create", "post_agreement", 'card', "card_year", "card_ovner", "ozon_id", "api_key", 'name_org', 'bank', 'inn', 'orgn', 'kpp', 'bank_account', 'correspondent_bank_account', 'bik', 'new_password')
+        fields = ("id", "email", "password", "first_name", "last_name", "patronymic", "role", "date_create",
+                  "post_agreement", 'card', "card_year", "card_ovner", "ozon_id", "api_key", 'name_org', 'bank', 'inn',
+                  'orgn', 'kpp', 'bank_account', 'correspondent_bank_account', 'bik', 'new_password')
 
 
 class TransactionSerializer(serializers.ModelSerializer):

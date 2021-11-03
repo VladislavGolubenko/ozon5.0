@@ -5,24 +5,18 @@ from .models import *
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('get_photo', 'user_id', 'ozon_product_id', 'marketing_price', 'sku', 'name', 'stock_balance', 'way_to_warehous', 'unit_price',
-                    'logistics_price', 'additional_price', 'summ_price', 'reorder_days_of_supply', 'days_for_production')
+    list_display = ('get_photo', 'user_id', 'ozon_product_id', 'marketing_price', 'sku', 'name', 'stock_balance',
+                    'way_to_warehous', 'unit_price', 'logistics_price', 'additional_price', 'summ_price',
+                    'reorder_days_of_supply', 'days_for_production')
 
     readonly_fields = ('summ_price',)
 
     fieldsets = (
         (None, {
             'fields': ('preview', 'user_id', 'ozon_product_id', 'marketing_price','sku', 'name', 'unit_price',
-                    'logistics_price', 'additional_price', 'summ_price', 'reorder_days_of_supply', 'days_for_production')
+                       'logistics_price', 'additional_price', 'summ_price', 'reorder_days_of_supply',
+                       'days_for_production')
         }),
-
-        # ('Складской учет', {
-        #     'classes': ('collapse',),
-        #     'fields': (
-        #         'stock_balance', 'history', 'average_order_speed', 'status', 'reordering_date',
-        #         'need_to_order', 'reorder_summ', 'reorder_profit', 'stock_for_days', 'deliveries', 'return_product',
-        #         'way_to_warehous', 'stock_profit', 'stock_price', 'potential_profit', 'average_unit_profit'),
-        # })
     )
 
     def get_photo(self, obj):
@@ -34,9 +28,25 @@ class ProductAdmin(admin.ModelAdmin):
 
 
 class OrderAdmin(admin.ModelAdmin):
+    list_display = ('user_id', 'order_number', 'date_of_order', 'in_process_at', 'status', 'posting_number', 'region',
+                    'city', 'delivery_type', 'warehous_id', 'warehouse_name', 'creating_date')
 
-    list_display = ('name', 'user_id', 'order_number', 'sku', 'date_of_order', 'order_place', 'shipping_warehouse', 'number', 'price', 'comission', 'profit', 'status')
+
+class ProductInOrderAdmin(admin.ModelAdmin):
+
+    list_display = ('user_id', 'order_id', 'sku', 'name', 'quantity', 'offer_id', 'price', 'price_f', 'comission_amount',
+                    'payout', 'product_id', 'deliv_to_customer',
+                    'return_not_deliv_to_customer', 'return_part_goods_customer', 'return_after_deliv_to_customer',
+                    'creating_date')
 
 
+class OzonTransactionAdmin(admin.ModelAdmin):
+    list_display = (
+    'user_id', 'operation_id', 'operation_type', 'operation_date', 'operation_type_name', 'accruals_for_sale',
+    'sale_commission', 'amount', 'type', 'posting_number', 'items', 'services')
+
+
+admin.site.register(OzonTransactions, OzonTransactionAdmin)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Order, OrderAdmin)
+admin.site.register(ProductInOrder, ProductInOrderAdmin)

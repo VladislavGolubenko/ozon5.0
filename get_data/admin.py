@@ -72,6 +72,7 @@ class TransactionAdmin(admin.ModelAdmin):
     #     }),
     # )
 
+
 class PaymentTypeAdmin(admin.ModelAdmin):
 
     list_display = ('type', 'description')
@@ -81,3 +82,4 @@ class PaymentTypeAdmin(admin.ModelAdmin):
 admin.site.register(User, UserAdmin)
 admin.site.register(Transaction, TransactionAdmin)
 admin.site.register(PaymentType, PaymentTypeAdmin)
+

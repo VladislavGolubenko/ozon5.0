@@ -12,5 +12,11 @@ app.conf.beat_schedule = {
     'update_product_order': {
         'task': 'product.tasks.update_product_order',
         'schedule': crontab(minute=0, hour=0),
+        # 'schedule': 30,
+    },
+
+    'found_new_ozon_transaction': {
+        'task': 'product.tasks.found_new_ozon_transaction',
+        'schedule': crontab(minute=30, hour=23),
     }
 }

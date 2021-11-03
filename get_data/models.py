@@ -149,6 +149,7 @@ class PaymentType(models.Model):
         verbose_name_plural = 'способы оплаты'
         ordering = ['type']
 
+
 class Transaction(models.Model):
 
     id_user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name="user_transaction", verbose_name='Пользователь')

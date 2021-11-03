@@ -1,5 +1,8 @@
+import json
 import requests
 from django.http import HttpResponse, Http404
+from datetime import datetime, date
+from datetime import timedelta
 from django_filters import rest_framework as filters
 # from django_filters.rest_framework import DjangoFilterBackend
 from .service import OrderFilter
@@ -110,130 +113,87 @@ class OrderDetailAction(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-# def test_action(request, email):
-#
-#     # user_data = User.objects.get(pk=request.user.id)
-#     user_data = User.objects.get(email=email)
-#     ozon_ovner = str(user_data.ozon_id)
-#     request_post = requests.post('https://api-seller.ozon.ru/v1/product/list',  headers={'Client-Id': ozon_ovner, 'Api-Key': user_data.api_key, 'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
-#     request_json = request_post.json()
-#
-#     if request_json.get('messege', None) == 'Invalid Api-Key, please contact support':
-#         return Response(data='Invalid Api-Key, please contact support', status=status.HTTP_400_BAD_REQUEST)
-#
-#     request_items = request_json.get('result')
-#     request_last = request_items['items']
-#
-#     for product_id_object in request_last:
-#         product_request = requests.post('https://api-seller.ozon.ru/v2/product/info', json={"product_id": product_id_object['product_id']},
-#                                      headers={'Client-Id': ozon_ovner, 'Api-Key': user_data.api_key,
-#                                               'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
-#         product_json_result = product_request.json()
-#         product_json = product_json_result['result']
-#
-#         ozon_id = product_json['id']
-#         preview = product_json['primary_image']
-#
-#         sources = product_json['sources']
-#
-#         for source in sources:
-#             sku = source['sku']
-#
-#         name = product_json['name']
-#         stocks = product_json['stocks']
-#
-#         coming = stocks['coming']  # Поставки
-#         balance = stocks['present']  # Остатки товара
-#         reserved = stocks['reserved']  # Зарезервировано
-#         warehouse_balance = balance - reserved  # Остатки на складе = остатки - зарезервированные единицы
-#
-#         return_query = requests.post('https://api-seller.ozon.ru/v2/returns/company/fbs',
-#                                         json={"filter": {"product_name": "string"}},
-#                                         headers={'Client-Id': ozon_ovner,
-#                                                  'Api-Key': user_data.api_key,
-#                                                  'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
-#
-#         try:
-#             return_query_result = return_query['result']
-#             return_product = return_query_result['count']  # кол-во возвращенных товаров
-#         except TypeError:
-#             return_product = 0  # кол-во возвращенных товаров
-#
-#         go_to_warehouse = return_product + coming  # в пути на склад (поставки + возвращенные товары)
-#
-#         print(ozon_id, preview,  name, sku, warehouse_balance, go_to_warehouse)
-#         print('Это id', ozon_id)
-#         print('это тип id', type(ozon_id))
-#         ozon_id = int(ozon_id)
-#         Product.objects.create_product(preview=preview, ozon_product_id=ozon_id, sku=sku, name=name, stock_balance=balance, way_to_warehous=go_to_warehouse, user_id=user_data.id)
-#
-#     return HttpResponse('<h1>получаем данные продуктов по api</h1>')
+class WarehouseAccountView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
 
+    def post(self, request, days):
 
-def order_action(request):
+        email = self.request.POST['email']
+        date_sort = datetime.now() - timedelta(days=days)
 
-    from product.models import Order
+        # products = Product.objects.filter(user_id=request.user.pk)
+        products = Product.objects.filter(user_id__email=email)
 
-    user_data = User.objects.get(email='admin@gmail.com')
-    ozon_ovner = str(user_data.ozon_id)
-    request_post = requests.post('https://api-seller.ozon.ru/v2/posting/fbo/list',
-                                 json={"dir": "asc",
-                                       "filter": {"since": "2021-06-24T14:15:22Z", "to": "2021-10-06T14:15:22Z"},
-                                       "limit": 1000,
-                                       "with": {
-                                           "analytics_data": True,
-                                           "financial_data": True,
-                                       }
-                                       },
-                                 headers={'Client-Id': ozon_ovner, 'Api-Key': user_data.api_key,
-                                          'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
-    request_json = request_post.json()
+        datas = []
 
-    if request_json.get('messege', None) == 'Invalid Api-Key, please contact support':
-        return Response(data='Invalid Api-Key, please contact support', status=status.HTTP_400_BAD_REQUEST)
+        for product in products:
 
-    request_items = request_json.get('result')
+            preview = product.preview
+            ozon_product_id = product.ozon_product_id
+            sku = product.sku
+            name = product.name
+            stock_balance = product.stock_balance
 
-    for order in request_items:
+            orders_by_period = 0
 
-        order_id = order['order_id']
-        in_process_at = order['in_process_at']
-        status = order['status']  # новое поле
+            products_in_orders = ProductInOrder.objects.filter(sku=product.sku, order_id_id__date_of_order__gte=date_sort)
 
-        for items in order['products']:
-            sku = items['sku']
-            name = items['name']
-            quantity = items['quantity']
-            offer_id = items['offer_id']
+            for product_in_order in products_in_orders:
+                orders_by_period += product_in_order.quantity  # Заказано за период
 
-        if order['analytics_data'] is not None:
-            analitics_data = order['analytics_data']
-            delivery_place = analitics_data['city'] + analitics_data['region']
-            warehouse_name = analitics_data['warehouse_name']
-        else:
-            delivery_place = None
-            warehouse_name = None
+            orders_speed = orders_by_period / days  # Средняя скорость заказов
+            days_for_production = product.days_for_production  # Срок производства
 
-        if order['financial_data'] is not None:
-            financial_data = order['financial_data']
+            if orders_speed != 0.0:
+                stocks_for_days = round(stock_balance/orders_speed)  # Осталось запасов на дней
+            else:
+                stocks_for_days = None
 
-            order_products = financial_data['products']
-            summ_order_price = sum([order_product['quantity'] * order_product['price'] for order_product in order_products])
+            reorder_days_of_supply = product.reorder_days_of_supply  # Глубина поставки
+            potencial_proceeds = product.marketing_price * product.stock_balance  # Потенциальная выручка остатков
 
-            if status == 'delivered' or status == 'cancelled':
-                comission_amount = sum([order_product['commission_amount'] for order_product in order_products])
+            if product.summ_price is not None:
+                product_price = product.summ_price  # Стоимость товара
+            elif product.unit_price and product.additional_price and product.logistics_price is not None:
+                product_price = product.unit_price + product.additional_price + product.logistics_price
+            else:
+                product_price = None
 
-                for order_product in order_products:
-                    if order_product['picking'] is not None:
-                        amount = sum(order_product['picking'].amount)
-                    else:
-                        amount = None
-        else:
-            summ_order_price = None
-            comission_amount = None
-            amount = None
-        print(order_id, in_process_at, sku, name, quantity, summ_order_price, user_data, offer_id, delivery_place, warehouse_name, comission_amount, amount, status)
-        Order.objects.create_order(order_id=order_id, in_process_at=in_process_at, sku=sku, name=name, quantity=quantity, price=summ_order_price, user_id=user_data, offer_id=offer_id, delivery_place=delivery_place, warehouse_name=warehouse_name, comission_amount=comission_amount, amount=amount, status=status)
+            if product_price is not None:
+                stocks_cost_price = product_price * stock_balance  # Себестоимость остатков
+            else:
+                stocks_cost_price = None
 
-    return HttpResponse('<h1>получаем данные заказов по api</h1>')
+            if reorder_days_of_supply is not None:
+                need_to_order = reorder_days_of_supply * orders_speed  # Необходимо заказать
+            else:
+                need_to_order = None
+
+            if need_to_order and product_price is not None:
+                reorder_sum = need_to_order * product_price  # Сумма перезаказа
+            else:
+                reorder_sum = None
+
+            data = {
+                'preview': preview,
+                'ozon_product_id': ozon_product_id,
+                'sku': sku,
+                'name': name,
+                'stock_balance': stock_balance,
+                'orders_by_period': orders_by_period,
+                'orders_speed': orders_speed,
+                'days_for_production': days_for_production,
+                'reorder_days_of_supply': reorder_days_of_supply,
+                'potencial_proceeds': potencial_proceeds,
+                'product_price': product_price,
+                'stocks_for_days': stocks_for_days,
+                'need_to_order': need_to_order,
+                'stocks_cost_price': stocks_cost_price,
+                'reorder_sum': reorder_sum
+            }
+
+            datas.append(data)
+
+        return Response(data=datas, status=status.HTTP_200_OK)
+
 

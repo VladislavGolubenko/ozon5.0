@@ -4,22 +4,75 @@ from django.db.models.signals import post_save, pre_save
 
 
 class ProductManager(models.Manager):
-    def create_product(self, preview, ozon_product_id, sku, name, stock_balance, way_to_warehous, marketing_price, user_id):
-        product = self.create(preview=preview, ozon_product_id=ozon_product_id, sku=sku, name=name, stock_balance=stock_balance, way_to_warehous=way_to_warehous, marketing_price=marketing_price, user_id=user_id)
+    def create_product(self, preview, ozon_product_id, sku, name, stock_balance, way_to_warehous, marketing_price, reserved, user_id):
+
+                       # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+                        # Наработки если понадобится обновлять данные введенные полььзователем при удалении
+
+                       # , days_for_production=None, reorder_days_of_supply=None, unit_price=None,
+                       # logistics_price=None, additional_price=None, summ_price=None):
+
+                       # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        product = self.create(preview=preview, ozon_product_id=ozon_product_id, sku=sku, name=name,
+                              stock_balance=stock_balance, way_to_warehous=way_to_warehous,
+                              marketing_price=marketing_price, reserved=reserved, user_id=user_id)
+
+                              # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+                              # Наработки если понадобится обновлять данные введенные полььзователем при удалении
+
+                              # , days_for_production=days_for_production,
+                              # reorder_days_of_supply=reorder_days_of_supply, unit_price=unit_price,
+                              # logistics_price=logistics_price, additional_price=additional_price, summ_price=summ_price)
+
+                              # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         return product
-    #
-    # def math_data_product(self, days_for_production, reorder_days_of_supply, unit_price, logistics_price, additional_price, summ_price, stock_balance, history, average_order_speed, status, reordering_date, need_to_order, reorder_summ, reorder_profit, stock_for_days, deliveries, return_product, way_to_warehous, stock_profit, stock_price, potential_profit, average_unit_profit):
-    #     product = self.update
+
 
 class OrderManager(models.Manager):
-    def create_order(self, order_id, in_process_at, sku, name, quantity, price, user_id, offer_id, delivery_place, warehouse_name, comission_amount, amount, status):
-        order = self.create(order_number=offer_id, date_of_order=in_process_at, sku=sku, name=name, number=quantity,
-                            price=price, user_id=user_id, order_place=delivery_place,
-                            shipping_warehouse=warehouse_name, comission=comission_amount, profit=amount, status=status)
+    def create_order(self, in_process_at, user_id, status, date_of_order,
+                     posting_number, region, city, delivery_type, warehous_id, warehouse_name, order_id=None):
+
+        order = self.create(order_number=order_id, in_process_at=in_process_at, user_id=user_id,
+                            status=status, date_of_order=date_of_order,
+                            posting_number=posting_number, region=region, city=city, delivery_type=delivery_type,
+                            warehous_id=warehous_id, warehouse_name=warehouse_name)
         return order
 
 
+class ProductInOrderManager(models.Manager):
+    def create_product_in_order(self, user_id, order_id, sku, name, quantity, offer_id, price, price_f, comission_amount, payout,
+                                product_id, fulﬁllment, direct_ﬂow_trans, return_ﬂow_trans, deliv_to_customer,
+                                return_not_deliv_to_customer, return_part_goods_customer,
+                                return_after_deliv_to_customer):
+
+        product_in_order = self.create(user_id=user_id, order_id=order_id, sku=sku, name=name, quantity=quantity,
+                                       offer_id=offer_id, price=price, comission_amount=comission_amount, payout=payout,
+                                       product_id=product_id, fulﬁllment=fulﬁllment, direct_ﬂow_trans=direct_ﬂow_trans,
+                                       return_ﬂow_trans=return_ﬂow_trans, deliv_to_customer=deliv_to_customer,
+                                       return_not_deliv_to_customer=return_not_deliv_to_customer, price_f=price_f,
+                                       return_part_goods_customer=return_part_goods_customer,
+                                       return_after_deliv_to_customer=return_after_deliv_to_customer)
+        return product_in_order
+
+
+class OzonTransactionsManager(models.Manager):
+    def create_ozon_transaction(self, user_id, operation_id, operation_type, operation_date, operation_type_name,
+                                accruals_for_sale, sale_commission, amount, type, posting_number, items, services):
+
+        ozon_transaction = self.create(user_id=user_id, operation_id=operation_id, operation_type=operation_type,
+                                       operation_date=operation_date, operation_type_name=operation_type_name,
+                                       accruals_for_sale=accruals_for_sale, sale_commission=sale_commission,
+                                       amount=amount, type=type, posting_number=posting_number, items=items,
+                                       services=services)
+        return ozon_transaction
+
+
 class Product(models.Model):
+
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="products_to_user", null=True, blank=True)
 
     preview = models.CharField(max_length=300, verbose_name='Превью')
     ozon_product_id = models.IntegerField(verbose_name='ID товара')
@@ -27,32 +80,18 @@ class Product(models.Model):
     name = models.CharField(max_length=300, verbose_name='Название товара')
     days_for_production = models.IntegerField(blank=True, null=True, verbose_name='Времени необходимо для производства')
     reorder_days_of_supply = models.IntegerField(blank=True, null=True, verbose_name='Глубина поставки')
-    unit_price = models.IntegerField(blank=True, null=True, default=0, verbose_name='Цена юнита')
-    logistics_price = models.IntegerField(blank=True, null=True, default=0, verbose_name='Цена логистики')
-    additional_price = models.IntegerField(blank=True, null=True, default=0, verbose_name='Дополнительные затраты')
-    summ_price = models.IntegerField(blank=True, null=True, verbose_name='Итого')
+    unit_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена юнита')
+    logistics_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена логистики')
+    additional_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Дополнительные затраты')
+    summ_price = models.FloatField(blank=True, null=True, verbose_name='Итого')# судя по тз из картинки нужно убрать
 
     marketing_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена')  # Поле равное маркетинг прайс или в случае нуля обычной цене (получается по апи)
 
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="products_to_user", null=True, blank=True)
-    # products = models.ManyToManyField(Product, related_name="user_to_products", null=True, blank=True)
-
     stock_balance = models.IntegerField(verbose_name="Остатки на складе", null=True)
-    history = models.IntegerField(blank=True, null=True, verbose_name="История продаж")
-    average_order_speed = models.IntegerField(blank=True, null=True, verbose_name="Средняя скорость заказа")
-    status = models.CharField(max_length=100, verbose_name="Статус закааза", default="wait")
-    reordering_date = models.DateTimeField(blank=True, null=True, verbose_name="Дата перезаказа")
-    need_to_order = models.IntegerField(blank=True, null=True, verbose_name="Необбходимо заказать")
-    reorder_summ = models.IntegerField(blank=True, null=True, verbose_name="Сумма перезаказа")
-    reorder_profit = models.IntegerField(blank=True, null=True, verbose_name="Прибыль перезаказа")
-    stock_for_days = models.IntegerField(blank=True, null=True, verbose_name="Запасов на дней")
-    deliveries = models.IntegerField(blank=True, null=True, verbose_name="Количество поставляется")
-    return_product = models.IntegerField(blank=True, null=True, verbose_name="Количество возвращаемых товаров")
     way_to_warehous = models.IntegerField(verbose_name="В пути на склад", null=True)
-    stock_profit = models.IntegerField(blank=True, null=True, verbose_name="Потенциальная выручка с остатков")
-    stock_price = models.IntegerField(blank=True, null=True, verbose_name="Себестоимость остатков")
-    potential_profit = models.IntegerField(blank=True, null=True, verbose_name="Потенциальная прибыль")
-    average_unit_profit = models.IntegerField(blank=True, null=True, verbose_name="Средняя прибыль единицы товара")
+    reserved = models.IntegerField(verbose_name="Зарезервировано", blank=True, null=True)
+
+    creating_date = models.DateField(auto_now_add=True, blank=True, null=True)
 
     objects = ProductManager()
 
@@ -69,20 +108,23 @@ class Order(models.Model):
 
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="order_to_user", null=True, blank=True)
 
-    name = models.CharField(max_length=300, verbose_name='Название товара')
     order_number = models.CharField(max_length=500, verbose_name="Номер заказа")
-    sku = models.CharField(max_length=100, verbose_name='SKU')
-    date_of_order = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="Дата и время размещения заказа")
-    order_place = models.CharField(max_length=1000, verbose_name="Куда заказан товар", null=True, blank=True)
-    shipping_warehouse = models.CharField(max_length=2000, verbose_name="Склад отгрузки", null=True, blank=True)
-    number = models.IntegerField(verbose_name="Количество")
-    price = models.CharField(max_length=50, verbose_name="Cумма заказа")
-    comission = models.IntegerField(verbose_name="Сумма комиссий", null=True, blank=True)
-    profit = models.IntegerField(verbose_name="Прибыль", null=True, blank=True)
+    date_of_order = models.DateTimeField(auto_now=False, auto_now_add=False,
+                                         verbose_name="Дата и время размещения заказа")
+    in_process_at = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="Дата принятия в обработку",
+                                         blank=True, null=True)
     status = models.CharField(max_length=100, verbose_name="Статус заказ", null=True, blank=True)
+    posting_number = models.CharField(max_length=15, verbose_name="Номер отправления", blank=True, null=True)
+    region = models.CharField(max_length=500, verbose_name='Регион', blank=True, null=True)
+    city = models.CharField(max_length=500, verbose_name="Город", blank=True, null=True)
+    delivery_type = models.CharField(max_length=100, verbose_name="Тип доставки", blank=True, null=True)
+    warehous_id = models.BigIntegerField(verbose_name="ID склада", blank=True, null=True)
+    warehouse_name = models.CharField(max_length=500, verbose_name="Склад отгрузки", blank=True, null=True)
+
+    creating_date = models.DateField(auto_now_add=True, blank=True, null=True)
 
     def __str__(self):
-        return str(self.name)
+        return str(self.order_number)
 
     class Meta:
         verbose_name = 'заказ'
@@ -91,6 +133,80 @@ class Order(models.Model):
 
     objects = OrderManager()
 
+
+class ProductInOrder(models.Model):
+
+    user_id = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="orderproduct_to_user",
+        null=True,
+        blank=True
+    )
+
+    order_id = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="orderproduct_to_order",
+        null=True,
+        blank=True
+    )
+
+    sku = models.CharField(max_length=100, verbose_name='SKU')
+    name = models.CharField(max_length=300, verbose_name='Название товара')
+    quantity = models.IntegerField(verbose_name='Кол-во')
+    offer_id = models.CharField(max_length=15, verbose_name="Номер предложения")
+    price = models.FloatField(verbose_name="Цена товара")
+    price_f = models.FloatField(verbose_name="Цена товара в заказе", blank=True, null=True)
+    comission_amount = models.FloatField(verbose_name="Сумма комиссий")
+    payout = models.FloatField(verbose_name="Cтоимость товара")
+    product_id = models.IntegerField("ID продукта")
+    fulﬁllment = models.FloatField(verbose_name="Выполнение предмета услуг на торговой площадке")
+    direct_ﬂow_trans = models.FloatField(verbose_name="Транзит товара на маркетплейсе")
+    return_ﬂow_trans = models.FloatField(verbose_name="Возврат товара через")
+    deliv_to_customer = models.FloatField(verbose_name="Доставка товара покупателю")
+    return_not_deliv_to_customer = models.FloatField(verbose_name="Возврат товара от покупателя")
+    return_part_goods_customer = models.FloatField(verbose_name="Возврат части заказа покупателю")
+    return_after_deliv_to_customer = models.FloatField(verbose_name="Возврат доставленного товара")
+
+    creating_date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return str(self.sku)
+
+    class Meta:
+        verbose_name = 'заказаный товар'
+        verbose_name_plural = 'заказаные товары'
+        ordering = ['id']
+
+    objects = ProductInOrderManager()
+
+
+class OzonTransactions(models.Model):
+
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ozon_transaction_to_user", null=True, blank=True)
+
+    operation_id = models.BigIntegerField(verbose_name="Номер опирации")
+    operation_type = models.CharField(max_length=250, verbose_name="Тип опирации")
+    operation_date = models.DateTimeField(verbose_name="Дата опирации")
+    operation_type_name = models.CharField(max_length=250, verbose_name="Название типа опирации")
+    accruals_for_sale = models.FloatField(verbose_name="Начисления за продажу")
+    sale_commission = models.FloatField(verbose_name="Комиссия за продажу")
+    amount = models.FloatField(verbose_name="Amount")
+    type = models.CharField(max_length=250, verbose_name="Тип")
+    posting_number = models.CharField(max_length=500, verbose_name="Номер доставки")
+    items = models.CharField(max_length=5000, verbose_name="Товары")
+    services = models.CharField(max_length=10000, verbose_name="Виды услуг")
+
+    def __str__(self):
+        return str(self.operation_id)
+
+    class Meta:
+        verbose_name = 'транзакцию ozon'
+        verbose_name_plural = 'транзакции ozon'
+        ordering = ['id']
+
+    objects = OzonTransactionsManager()
 
 # Использование сигнала
 # def save_product(sender, instance, **kwargs):
