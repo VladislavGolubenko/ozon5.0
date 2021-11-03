@@ -53,8 +53,8 @@ class UserSerializer(serializers.ModelSerializer):
                 instance.set_password(password)
 
                 instance.save()
-                # get_product.delay(email=email)
-                # get_order.delay(email=email)
+                get_product.delay(email=email)
+                get_order.delay(email=email)
                 get_ozon_transaction.delay(email=email)
                 return instance
             else:
