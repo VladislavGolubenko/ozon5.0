@@ -3,16 +3,19 @@ from .models import *
 from product.models import Product
 
 # TabularInline, StackedInline
+
+
 class ProductInline(admin.TabularInline):
     model = Product
     readonly_fields = ('ozon_product_id', 'sku', 'summ_price')
-    fields = ('ozon_product_id', 'sku', 'days_for_production', 'reorder_days_of_supply', 'unit_price', 'logistics_price', 'additional_price', 'summ_price')
+    fields = ('ozon_product_id', 'sku', 'days_for_production', 'reorder_days_of_supply', 'unit_price',
+              'logistics_price', 'additional_price', 'summ_price')
     extra = 0
 
 
-
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('email', 'first_name', 'last_name', 'patronymic', 'role', 'date_create', 'is_staff', 'is_active', 'post_agreement', 'is_superuser')
+    list_display = ('email', 'first_name', 'last_name', 'patronymic', 'role', 'date_create', 'is_staff', 'is_active',
+                    'post_agreement', 'is_superuser')
     list_display_links = ('email',)  # какие поля будут ссылками
     readonly_fields = ('transaction_data',)
 
@@ -33,8 +36,8 @@ class UserAdmin(admin.ModelAdmin):
 
         ('Данные для оплаты', {
             'classes': ('collapse',),
-            'fields': (
-            'card', 'card_year', 'card_ovner', 'name_org', 'bank', 'inn', 'orgn', 'kpp', 'bank_account', 'correspondent_bank_account', 'bik'),
+            'fields': ('card', 'card_year', 'card_ovner', 'name_org', 'bank', 'inn', 'orgn', 'kpp', 'bank_account',
+                       'correspondent_bank_account', 'bik'),
         }),
 
 
@@ -79,7 +82,11 @@ class PaymentTypeAdmin(admin.ModelAdmin):
     list_display_links = ('type',)
 
 
+class RateAdmin(admin.ModelAdmin):
+    list_display = ('id', 'rate_name', 'validity', 'price', 'description')
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Transaction, TransactionAdmin)
 admin.site.register(PaymentType, PaymentTypeAdmin)
-
+admin.site.register(Rate, RateAdmin)

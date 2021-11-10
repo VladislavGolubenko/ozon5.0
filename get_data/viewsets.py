@@ -15,6 +15,9 @@ class MeViewSet(APIView):
         user_data = UserSerializer(
             User.objects.filter(pk=self.request.user.pk).first())
 
+        # print(request.user.role)
+        # print(type(request.user.role))
+
         return Response(data=user_data.data, status=status.HTTP_200_OK)
 
 

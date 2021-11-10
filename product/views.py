@@ -14,6 +14,7 @@ from rest_framework.generics import ListAPIView
 
 from .serializers import *
 from rest_framework import permissions
+from .permissions import IsSubscription
 from .models import *
 
 
@@ -75,7 +76,6 @@ class OrderListAction(ListAPIView):
         # serializer = OrderSerializer(queryset, many=True)
         # return Response(serializer.data)
 
-
     # def post(self, request, format=None):
     #     serializer = OrderSerializer(data=request.data)
     #     if serializer.is_valid():
@@ -86,7 +86,6 @@ class OrderListAction(ListAPIView):
 
 class OrderDetailAction(APIView):
     permission_classes = [permissions.IsAuthenticated]
-
 
     def get_object(self, pk):
         try:
@@ -114,7 +113,8 @@ class OrderDetailAction(APIView):
 
 
 class WarehouseAccountView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsSubscription]
 
     def post(self, request, days):
 
@@ -136,7 +136,8 @@ class WarehouseAccountView(APIView):
 
             orders_by_period = 0
 
-            products_in_orders = ProductInOrder.objects.filter(sku=product.sku, order_id_id__date_of_order__gte=date_sort)
+            products_in_orders = ProductInOrder.objects.filter(sku=product.sku,
+                                                               order_id_id__date_of_order__gte=date_sort)
 
             for product_in_order in products_in_orders:
                 orders_by_period += product_in_order.quantity  # Заказано за период
@@ -145,7 +146,7 @@ class WarehouseAccountView(APIView):
             days_for_production = product.days_for_production  # Срок производства
 
             if orders_speed != 0.0:
-                stocks_for_days = round(stock_balance/orders_speed)  # Осталось запасов на дней
+                stocks_for_days = round(stock_balance / orders_speed)  # Осталось запасов на дней
             else:
                 stocks_for_days = None
 
@@ -174,26 +175,37 @@ class WarehouseAccountView(APIView):
             else:
                 reorder_sum = None
 
+            if reorder_days_of_supply >= stocks_for_days:
+                status_of_product = "Заказать сейсчас"
+            elif reorder_days_of_supply < stocks_for_days and reorder_days_of_supply <= stocks_for_days + 7:
+                status_of_product = "Заказать скоро"
+            elif stocks_for_days <= reorder_days_of_supply + 7 and stocks_for_days <= reorder_days_of_supply + 21:
+                status_of_product = "В наличии"
+            elif stocks_for_days > reorder_days_of_supply + 21:
+                status_of_product = "Избыток"
+
             data = {
-                'preview': preview,
-                'ozon_product_id': ozon_product_id,
-                'sku': sku,
-                'name': name,
-                'stock_balance': stock_balance,
-                'orders_by_period': orders_by_period,
-                'orders_speed': orders_speed,
-                'days_for_production': days_for_production,
-                'reorder_days_of_supply': reorder_days_of_supply,
-                'potencial_proceeds': potencial_proceeds,
-                'product_price': product_price,
-                'stocks_for_days': stocks_for_days,
-                'need_to_order': need_to_order,
-                'stocks_cost_price': stocks_cost_price,
-                'reorder_sum': reorder_sum
+                'preview': preview,  # Превью
+                'ozon_product_id': ozon_product_id,  # ID
+                'sku': sku,  # Артикул
+                'name': name,  # Название
+                'stock_balance': stock_balance,  # Остатки на складе
+                'orders_by_period': orders_by_period,  # Средняя скорость заказов
+                'orders_speed': orders_speed,  #
+                'days_for_production': days_for_production,  # Срок производства
+                'reorder_days_of_supply': reorder_days_of_supply,  # Глубина поставки
+                'potencial_proceeds': potencial_proceeds,  # Потенциальная выручка с остатков
+                'product_price': product_price,  # Стоимость товара
+                'stocks_for_days': stocks_for_days,  # Осталось запасов на дней
+                'need_to_order': need_to_order,  # Необходимо заказать (количество для заказа)
+                'stocks_cost_price': stocks_cost_price,  # Себестоимость остатков
+                'reorder_sum': reorder_sum,  # Сумма перезаказа
+                'status_of_product': status_of_product,  # Статус
+                # Заказано товаров
+                # Дата перезаказа
+                # Прибыль перезаказа
             }
 
             datas.append(data)
 
         return Response(data=datas, status=status.HTTP_200_OK)
-
-

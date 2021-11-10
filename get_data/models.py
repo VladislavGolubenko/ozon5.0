@@ -47,7 +47,6 @@ class UserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
-
 class User(AbstractBaseUser, PermissionsMixin):
 
     @property
@@ -60,9 +59,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     USER = "user"
     ADMIN = "admin"
+    SUBSCRIPTION = "subscription"
+
     ROLE = [
         (USER, "user"),
         (ADMIN, "admin"),
+        (SUBSCRIPTION, "subscription"),
     ]
 
     email = models.EmailField(
@@ -124,7 +126,8 @@ class User(AbstractBaseUser, PermissionsMixin):
             return_transaction = return_transaction + f'Номер транзакции:  {user_transaction.transaction_number}, ' \
                                                       f'\n Дата транзакции:  {user_transaction.date_issued}, \n ' \
                                                       f'Тип оплаты:  {user_transaction.type}, \n Тариф: ' \
-                                                      f'  {user_transaction.rate}, \n Сумма:  {user_transaction.summ} \n \n \n'
+                                                      f'{user_transaction.rate}, \n Сумма:  {user_transaction.summ}' \
+                                                      f'\n \n \n'
 
         return return_transaction
 
@@ -136,8 +139,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
-class PaymentType(models.Model):
 
+class PaymentType(models.Model):
     type = models.CharField(max_length=100, default='card', verbose_name="Способ оплаты")
     description = models.CharField(max_length=1000, verbose_name="Описание способа оплаты")
 
@@ -150,16 +153,32 @@ class PaymentType(models.Model):
         ordering = ['type']
 
 
+class Rate(models.Model):
+    rate_name = models.CharField(max_length=200, default='base', verbose_name="Название тарифа")
+    validity = models.IntegerField(verbose_name='Срок действия в днях')
+    price = models.FloatField(verbose_name="Стоимость тарифа")
+    description = models.CharField(max_length=1500, verbose_name="Краткое описание тарифа")
+
+    def __str__(self):
+        return str(self.rate_name)
+
+    class Meta:
+        verbose_name = 'тариф'
+        verbose_name_plural = 'тарифы'
+        ordering = ['id']
+
+
 class Transaction(models.Model):
-
-    id_user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name="user_transaction", verbose_name='Пользователь')
+    id_user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name="user_transaction",
+                                verbose_name='Пользователь')
     transaction_number = models.CharField(max_length=200, default='000000000000000', verbose_name="Номер транзакции")
-    date_issued = models.DateTimeField(auto_now_add=True, verbose_name="Дата выполнения")
-    type = models.ForeignKey(PaymentType, on_delete=models.CASCADE, blank=True, null=True, related_name="payment_transaction", verbose_name='Способ оплаты')
-    rate = models.CharField(max_length=100, default='base', verbose_name="Тариф")
+    date_issued = models.DateTimeField(auto_now_add=True, verbose_name="Дата выполнения", blank=True)
+    type = models.ForeignKey(PaymentType, on_delete=models.CASCADE, blank=True, null=True,
+                             related_name="payment_transaction", verbose_name='Способ оплаты')
+    rate = models.ForeignKey(Rate, on_delete=models.CASCADE, blank=True, null=True,
+                             related_name="rate_transaction", verbose_name='Тариф')
     summ = models.IntegerField(default=0, verbose_name='Сумма списания')
-    status = models.CharField(max_length=100, default='wait', verbose_name='Статус')
-
+    status = models.CharField(max_length=100, default='wait', verbose_name='Статус', blank=True)
 
     def __str__(self):
         return str(self.transaction_number)
@@ -168,4 +187,3 @@ class Transaction(models.Model):
         verbose_name = 'транзакцию'
         verbose_name_plural = 'транзакции'
         ordering = ['id']
-    
