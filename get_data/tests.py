@@ -1,3 +1,13 @@
-from django.test import TestCase
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APITestCase
 
-# Create your tests here.
+from .models import User
+
+class UserTest(APITestCase):
+
+    def test_show_me_user(self):
+        url = reverse('me')
+        data = {
+
+        }

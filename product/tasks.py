@@ -107,7 +107,7 @@ def get_order(*args, **kwargs):
         posting_number = order['posting_number']
         in_process_at = order['in_process_at']
         date_of_order = order['created_at']
-        status = order['status']  # новое поле
+        status2 = order['status']  # новое поле
         quantity = 0
 
         if order['analytics_data'] is not None:
@@ -118,7 +118,6 @@ def get_order(*args, **kwargs):
             warehous_id = analitics_data['warehouse_id']
             delivery_type = analitics_data['delivery_type']
         else:
-            analitics_data = None
             city = None
             region = None
             warehouse_name = None
@@ -126,9 +125,10 @@ def get_order(*args, **kwargs):
             delivery_type = None
 
         order_save = Order.objects.create_order(order_id=order_id, in_process_at=in_process_at, user_id=user_data,
-                                   status=status,
-                                   date_of_order=date_of_order, posting_number=posting_number, region=region, city=city,
-                                   delivery_type=delivery_type, warehous_id=warehous_id, warehouse_name=warehouse_name)
+                                                status=status2, date_of_order=date_of_order,
+                                                posting_number=posting_number, region=region, city=city,
+                                                delivery_type=delivery_type, warehous_id=warehous_id,
+                                                warehouse_name=warehouse_name)
 
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #  из двух списков нужно сформировать один по индексу
@@ -144,7 +144,6 @@ def get_order(*args, **kwargs):
             quantity = product_i['quantity']
             offer_id = product_i['offer_id']
             price = product_i['price']
-
 
             product_f = product_financial[i]
             comission_amount = product_f['commission_amount']
@@ -327,7 +326,7 @@ def update_product_order(*args, **kwargs):
             posting_number = order['posting_number']
             in_process_at = order['in_process_at']
             date_of_order = order['created_at']
-            status = order['status']  # новое поле
+            status2 = order['status']  # новое поле
             quantity = 0
 
             if order['analytics_data'] is not None:
@@ -346,7 +345,7 @@ def update_product_order(*args, **kwargs):
                 delivery_type = None
 
             order_save = Order.objects.create_order(order_id=order_id, in_process_at=in_process_at, user_id=data,
-                                                    status=status, date_of_order=date_of_order,
+                                                    status=status2, date_of_order=date_of_order,
                                                     posting_number=posting_number, region=region, city=city,
                                                     delivery_type=delivery_type, warehous_id=warehous_id,
                                                     warehouse_name=warehouse_name)
@@ -667,4 +666,121 @@ def found_new_ozon_transaction(*args, **kwargs):
                                                              sale_commission=sale_commission,
                                                              amount=amount, type=type, posting_number=posting_number,
                                                              items=items_array, services=services_array)
+
+
+@app.task(bind=True)
+def get_analitic_data(*args, **kwargs):
+    email = kwargs.get('email')
+
+    from product.models import OzonMetrics
+    user_data = User.objects.get(email=email)
+    ozon_ovner = str(user_data.ozon_id)
+
+    year = datetime.now().year
+    month = datetime.now().month
+    day = datetime.now().day
+
+    if day < 10:
+        date_from = f"{year}-{month}-0{day}T00:00:00Z"
+        date_to = f"{year}-{month}-0{day}T23:55:00Z"
+    else:
+        date_from = f"{year}-{month}-{day}T00:00:00Z"
+        date_to = f"{year}-{month}-{day}T23:55:00Z"
+
+    request_post = requests.post('https://api-seller.ozon.ru/v1/analytics/data',
+                                 json={
+                                        "date_from": date_from,
+                                        "date_to": date_to,
+                                        "dimension": [
+                                            "sku"
+                                        ],
+                                        "limit": 1000,
+                                        "metrics": [
+                                            "hits_view_search",
+                                            "hits_view_pdp",
+                                            "hits_view",
+                                            "hits_tocart_search",
+                                            "hits_tocart_pdp",
+                                            "hits_tocart",
+                                            "session_view_search",
+                                            "session_view_pdp",
+                                            "session_view",
+                                            "conv_tocart_search",
+                                            "conv_tocart_pdp",
+                                            "conv_tocart",
+                                            "revenue",
+                                            "returns",
+                                            "cancellations",
+                                            "ordered_units",
+                                            "delivered_units",
+                                            "adv_view_pdp",
+                                            "adv_view_search_category",
+                                            "adv_view_all",
+                                            "adv_sum_all",
+                                            "position_category",
+                                            "postings",
+                                            "postings_premium"
+                                        ],
+                                        "offset": 0,
+                                        "sort": [
+                                            {
+                                                "key": "hits_view",
+                                                "order": "ASC"
+                                            }
+                                        ]
+                                    },
+                                 headers={'Client-Id': ozon_ovner, 'Api-Key': user_data.api_key,
+                                          'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
+    request_json = request_post.json()
+    result = request_json['result']
+    datas = result['data']
+
+    for data in datas:
+        dimensions = data['dimensions']
+
+        for dimension in dimensions:
+            product_id = dimension['id']
+            product_name = dimension['name']
+
+        metrics = data['metrics']
+        hits_view_search = metrics[0]
+        hits_view_pdp = metrics[1]
+        hits_view = metrics[2]
+        hits_tocart_search = metrics[3]
+        hits_tocart_pdp = metrics[4]
+        hits_tocart = metrics[5]
+        session_view_search = metrics[6]
+        session_view_pdp = metrics[7]
+        session_view = metrics[8]
+        conv_tocart_search = metrics[9]
+        conv_tocart_pdp = metrics[10]
+        conv_tocart = metrics[11]
+        revenue = metrics[12]
+        returns = metrics[13]
+        cancellations = metrics[14]
+        ordered_units = metrics[15]
+        delivered_units = metrics[16]
+        adv_view_pdp = metrics[17]
+        adv_view_search_category = metrics[18]
+        adv_view_all = metrics[19]
+        adv_sum_all = metrics[20]
+        position_category = metrics[21]
+        postings = metrics[22]
+        postings_premium = metrics[23]
+
+        OzonMetrics.objects.create_ozon_metrics(user_id=user_data, product_id=product_id, product_name=product_name,
+                                                hits_view_search=hits_view_search, hits_view_pdp=hits_view_pdp,
+                                                hits_view=hits_view, hits_tocart_search=hits_tocart_search,
+                                                hits_tocart_pdp=hits_tocart_pdp, hits_tocart=hits_tocart,
+                                                session_view_search=session_view_search,
+                                                session_view_pdp=session_view_pdp, session_view=session_view,
+                                                conv_tocart_search=conv_tocart_search, conv_tocart_pdp=conv_tocart_pdp,
+                                                conv_tocart=conv_tocart, revenue=revenue, returns=returns,
+                                                cancellations=cancellations, ordered_units=ordered_units,
+                                                delivered_units=delivered_units, adv_view_pdp=adv_view_pdp,
+                                                adv_view_search_category=adv_view_search_category,
+                                                adv_view_all=adv_view_all,
+                                                adv_sum_all=adv_sum_all, position_category=position_category,
+                                                postings=postings,
+                                                postings_premium=postings_premium)
 

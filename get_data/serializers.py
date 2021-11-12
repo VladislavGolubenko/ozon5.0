@@ -2,7 +2,7 @@ import requests
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
 from .models import *
-from product.tasks import get_product, get_order, get_ozon_transaction
+from product.tasks import get_product, get_order, get_ozon_transaction, get_analitic_data
 from datetime import datetime, date
 from datetime import timedelta
 import openpyxl
@@ -56,9 +56,10 @@ class UserSerializer(serializers.ModelSerializer):
                 instance.set_password(password)
 
                 instance.save()
-                get_product.delay(email=email)
-                get_order.delay(email=email)
-                get_ozon_transaction.delay(email=email)
+                # get_product.delay(email=email)
+                # get_order.delay(email=email)
+                # get_ozon_transaction.delay(email=email)
+                get_analitic_data.delay(email=email)
                 return instance
             else:
                 raise ValidationError(
