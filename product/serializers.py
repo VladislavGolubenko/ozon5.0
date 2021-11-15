@@ -1,6 +1,12 @@
 from rest_framework import serializers
 from django_filters import rest_framework as filters
-from .models import Product, Order
+from .models import (
+    Product,
+    Order,
+    ProductInOrder,
+    OzonTransactions,
+    OzonMetrics
+)
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -28,8 +34,37 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ('id', 'name', 'order_number', 'sku', 'date_of_order', 'order_place', 'shipping_warehouse',
-                  'number', 'price', 'comission', 'profit', 'status')
+        fields = ('id', 'user_id', 'order_number', 'date_of_order', 'in_process_at', 'status', 'posting_number',
+                  'region', 'city', 'delivery_type', 'warehous_id', 'warehouse_name', 'creating_date')
+
+
+class ProductInOrderSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ProductInOrder
+        fields = ('id', 'user_id', 'order_id', 'sku', 'name', 'quantity', 'offer_id', 'price', 'price_f',
+                  'comission_amount', 'payout', 'product_id', 'fulfillment', 'direct_flow_trans', 'return_flow_trans',
+                  'deliv_to_customer', 'return_not_deliv_to_customer', 'return_part_goods_customer',
+                  'return_after_deliv_to_customer', 'creating_date')
+
+
+class OzonTransactionsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OzonTransactions
+        fields = ('id', 'user_id', 'operation_id', 'operation_type', 'operation_date', 'operation_type_name',
+                  'accruals_for_sale', 'sale_commission', 'amount', 'type', 'posting_number', 'items', 'services')
+
+
+class OzonMetricsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OzonMetrics
+        fields = ('user_id', 'product_id', 'product_name', 'hits_view_search', 'hits_view_pdp', 'hits_view',
+                  'hits_tocart_search', 'hits_tocart_pdp', 'hits_tocart', 'session_view_search', 'session_view_pdp',
+                  'session_view', 'conv_tocart_search', 'conv_tocart_pdp', 'conv_tocart', 'revenue', 'returns',
+                  'cancellations', 'ordered_units', 'delivered_units', 'adv_view_pdp', 'adv_view_search_category',
+                  'adv_view_all', 'adv_sum_all', 'position_category', 'postings', 'postings_premium', 'creating_date')
 
 
 class WarehouseAccountSerializer(serializers.Serializer):

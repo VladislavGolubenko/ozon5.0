@@ -18,6 +18,30 @@ from .permissions import IsSubscription
 from .models import *
 
 
+class ProductInOrderAction(APIView):
+
+    def get(self, request):
+        queryset = ProductInOrder.objects.filter(user_id=request.user.pk)
+        serializer = ProductInOrderSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class OzonTransactionsAction(APIView):
+
+    def get(self, request):
+        queryset = OzonTransactions.objects.filter(user_id=request.user.pk)
+        serializer = OzonTransactionsSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class OzonMetricsAction(APIView):
+
+    def get(self, request):
+        queryset = OzonTransactions.objects.filter(user_id=request.user.pk)
+        serializer = OzonTransactionsSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+
 class ProductListAction(APIView):
 
     def get(self, request, format=None):
@@ -175,14 +199,22 @@ class WarehouseAccountView(APIView):
             else:
                 reorder_sum = None
 
-            if reorder_days_of_supply >= stocks_for_days:
-                status_of_product = "Заказать сейсчас"
-            elif reorder_days_of_supply < stocks_for_days and reorder_days_of_supply <= stocks_for_days + 7:
-                status_of_product = "Заказать скоро"
-            elif stocks_for_days <= reorder_days_of_supply + 7 and stocks_for_days <= reorder_days_of_supply + 21:
-                status_of_product = "В наличии"
-            elif stocks_for_days > reorder_days_of_supply + 21:
-                status_of_product = "Избыток"
+            if reorder_days_of_supply and stocks_for_days is not None:
+                if reorder_days_of_supply >= stocks_for_days:
+                    status_of_product = "Заказать сейсчас"
+                elif reorder_days_of_supply < stocks_for_days and reorder_days_of_supply <= stocks_for_days + 7:
+                    status_of_product = "Заказать скоро"
+                elif stocks_for_days <= reorder_days_of_supply + 7 and stocks_for_days <= reorder_days_of_supply + 21:
+                    status_of_product = "В наличии"
+                elif stocks_for_days > reorder_days_of_supply + 21:
+                    status_of_product = "Избыток"
+            else:
+                status_of_product = None
+
+            if stocks_for_days and days_for_production is not None:
+                reorder_date = datetime.now() + timedelta(stocks_for_days-days_for_production)
+            else:
+                reorder_date = None
 
             data = {
                 'preview': preview,  # Превью
@@ -190,8 +222,8 @@ class WarehouseAccountView(APIView):
                 'sku': sku,  # Артикул
                 'name': name,  # Название
                 'stock_balance': stock_balance,  # Остатки на складе
-                'orders_by_period': orders_by_period,  # Средняя скорость заказов
-                'orders_speed': orders_speed,  #
+                'orders_by_period': orders_by_period,  # Заказано товарa
+                'orders_speed': orders_speed,  # Скорость заказа
                 'days_for_production': days_for_production,  # Срок производства
                 'reorder_days_of_supply': reorder_days_of_supply,  # Глубина поставки
                 'potencial_proceeds': potencial_proceeds,  # Потенциальная выручка с остатков
@@ -201,9 +233,14 @@ class WarehouseAccountView(APIView):
                 'stocks_cost_price': stocks_cost_price,  # Себестоимость остатков
                 'reorder_sum': reorder_sum,  # Сумма перезаказа
                 'status_of_product': status_of_product,  # Статус
-                # Заказано товаров
-                # Дата перезаказа
+                'reorder_date': reorder_date, # Дата перезаказа
+
+                # Параметр на согласовании:
+                # Средняя прибыль единицы товара
+
+                # Параметры, которые потерялись из-за средней прибыли единицы товара
                 # Прибыль перезаказа
+                # Потенциальная прибыль остатков
             }
 
             datas.append(data)

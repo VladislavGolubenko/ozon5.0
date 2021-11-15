@@ -78,7 +78,7 @@ def get_product(*args, **kwargs):
 @app.task(bind=True)
 def get_order(*args, **kwargs):
     email = kwargs.get('email')
-    from product.models import Order, ProductInOrder
+    from product.models import Order, ProductInOrder, OzonTransactions
 
     user_data = User.objects.get(email=email)
     ozon_ovner = str(user_data.ozon_id)
@@ -143,7 +143,13 @@ def get_order(*args, **kwargs):
             name = product_i['name']
             quantity = product_i['quantity']
             offer_id = product_i['offer_id']
-            price = product_i['price']
+
+            transaction_price = OzonTransactions.get(posting_number=posting_number)
+
+            if transaction_price is not None:
+                price = transaction_price
+            else:
+                price = product_i['price']
 
             product_f = product_financial[i]
             comission_amount = product_f['commission_amount']
