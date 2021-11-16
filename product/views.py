@@ -16,6 +16,7 @@ from .serializers import *
 from rest_framework import permissions
 from .permissions import IsSubscription
 from .models import *
+from .tasks import get_analitic_data, update_analitics_data
 
 
 class ProductInOrderAction(APIView):
@@ -39,14 +40,21 @@ class OzonMetricsAction(APIView):
     def get(self, request):
 
         """
-        При переходе на отображение страницы перед отображением будет должны обновиться аналитические данные озон
-        конкретного пользователя. В дальнейшем обновления данных за это же число будут должны происходить на следующий
-        день для финальной актуализации
+        При переходе на отображение страницы перед отображением будет должны обновиться (или подтянуться, в случае
+        если их нет) аналитические данные озонконкретного пользователя. В дальнейшем обновления данных за это же число
+        будут должны происходить на следующий день для финальной актуализации
         """
 
-        today = datetime.now()
-        # this_day_metrics = OzonMetrics.objects.get()
-        # if
+        today = datetime.now().date()
+        print(today)
+        this_day_metrics = OzonMetrics.objects.filter(user_id=request.user.pk, creating_date=today)
+        email_query = User.objects.get(id=request.user.pk)
+
+        if this_day_metrics.exists():
+            update_analitics_data.delay(email=email_query.email, today=today)
+        else:
+            get_analitic_data.delay(email=email_query.email)
+
         queryset = OzonTransactions.objects.filter(user_id=request.user.pk)
         serializer = OzonTransactionsSerializer(queryset, many=True)
         return Response(serializer.data)
@@ -245,7 +253,7 @@ class WarehouseAccountView(APIView):
                 'stocks_cost_price': stocks_cost_price,  # Себестоимость остатков
                 'reorder_sum': reorder_sum,  # Сумма перезаказа
                 'status_of_product': status_of_product,  # Статус
-                'reorder_date': reorder_date, # Дата перезаказа
+                'reorder_date': reorder_date,  # Дата перезаказа
 
                 # Параметр на согласовании:
                 # Средняя прибыль единицы товара

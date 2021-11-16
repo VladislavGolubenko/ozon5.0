@@ -44,7 +44,9 @@ class UserSerializer(serializers.ModelSerializer):
             api_key = validated_data['api_key']
             email = str(validated_data.get('email'))
 
-            api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list',  headers={'Client-Id': ozon_id, 'Api-Key': api_key, 'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
+            api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list',  headers={'Client-Id': ozon_id,
+                                'Api-Key': api_key, 'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
+
             user = User.objects.get(email=validated_data.get("email"))
 
             if api_key_isset.status_code == 200 and user.password == instance.password:
