@@ -37,6 +37,16 @@ class OzonTransactionsAction(APIView):
 class OzonMetricsAction(APIView):
 
     def get(self, request):
+
+        """
+        При переходе на отображение страницы перед отображением будет должны обновиться аналитические данные озон
+        конкретного пользователя. В дальнейшем обновления данных за это же число будут должны происходить на следующий
+        день для финальной актуализации
+        """
+
+        today = datetime.now()
+        this_day_metrics = OzonMetrics.objects.get()
+        if
         queryset = OzonTransactions.objects.filter(user_id=request.user.pk)
         serializer = OzonTransactionsSerializer(queryset, many=True)
         return Response(serializer.data)
@@ -44,12 +54,12 @@ class OzonMetricsAction(APIView):
 
 class ProductListAction(APIView):
 
-    def get(self, request, format=None):
+    def get(self, request):
         queryset = Product.objects.filter(user_id=request.user.pk)
         serializer = ProductSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    def post(self, request, format=None):
+    def post(self, request):
         serializer = ProductSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -71,7 +81,7 @@ class ProductDetailAction(APIView):
         serializer = ProductSerializer(queryset)
         return Response(serializer.data)
 
-    def put(self, request, pk, format=None):
+    def put(self, request, pk):
         queryset = self.get_object(pk)
         serializer = ProductSerializer(queryset, data=request.data)
         if serializer.is_valid():
@@ -79,7 +89,7 @@ class ProductDetailAction(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk, format=None):
+    def delete(self, request, pk):
         queryset = self.get_object(pk)
         queryset.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -117,12 +127,12 @@ class OrderDetailAction(APIView):
         except Order.DoesNotExist:
             raise Http404
 
-    def get(self, request, pk, format=None):
+    def get(self, request, pk):
         queryset = self.get_object(pk)
         serializer = OrderSerializer(queryset)
         return Response(serializer.data)
 
-    def put(self, request, pk, format=None):
+    def put(self, request, pk):
         queryset = self.get_object(pk)
         serializer = OrderSerializer(queryset, data=request.data)
         if serializer.is_valid():
@@ -130,7 +140,7 @@ class OrderDetailAction(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk, format=None):
+    def delete(self, request, pk):
         queryset = self.get_object(pk)
         queryset.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -142,7 +152,10 @@ class WarehouseAccountView(APIView):
 
     def post(self, request, days):
 
-        email = self.request.POST['email']
+        # email = self.request.POST['json']
+        json_with_email = json.loads(request.body.decode("utf-8"))
+        email = json_with_email['email']
+
         date_sort = datetime.now() - timedelta(days=days)
 
         # products = Product.objects.filter(user_id=request.user.pk)

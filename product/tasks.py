@@ -130,7 +130,7 @@ def get_order(*args, **kwargs):
                                                 delivery_type=delivery_type, warehous_id=warehous_id,
                                                 warehouse_name=warehouse_name)
 
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #  из двух списков нужно сформировать один по индексу
 
         financial_data = order['financial_data']
@@ -144,12 +144,7 @@ def get_order(*args, **kwargs):
             quantity = product_i['quantity']
             offer_id = product_i['offer_id']
 
-            transaction_price = OzonTransactions.get(posting_number=posting_number)
-
-            if transaction_price is not None:
-                price = transaction_price
-            else:
-                price = product_i['price']
+            price = product_i['price']
 
             product_f = product_financial[i]
             comission_amount = product_f['commission_amount']
@@ -158,9 +153,9 @@ def get_order(*args, **kwargs):
             price_f = product_f['price']
 
             item_services = product_f['item_services']
-            fulﬁllment = item_services['marketplace_service_item_fulfillment']
-            direct_ﬂow_trans = item_services['marketplace_service_item_direct_flow_trans']
-            return_ﬂow_trans = item_services['marketplace_service_item_return_flow_trans']
+            fulfillment = item_services['marketplace_service_item_fulfillment']
+            direct_flow_trans = item_services['marketplace_service_item_direct_flow_trans']
+            return_flow_trans = item_services['marketplace_service_item_return_flow_trans']
             deliv_to_customer = item_services['marketplace_service_item_deliv_to_customer']
             return_not_deliv_to_customer = item_services['marketplace_service_item_return_not_deliv_to_customer']
             return_part_goods_customer = item_services['marketplace_service_item_return_part_goods_customer']
@@ -170,24 +165,22 @@ def get_order(*args, **kwargs):
                                                            quantity=quantity, offer_id=offer_id, price=price,
                                                            price_f=price_f, comission_amount=comission_amount,
                                                            payout=payout, product_id=product_id,
-                                                           fulﬁllment=fulﬁllment,
-                                                           direct_ﬂow_trans=direct_ﬂow_trans,
-                                                           return_ﬂow_trans=return_ﬂow_trans,
+                                                           fulﬁllment=fulfillment,
+                                                           direct_flow_trans=direct_flow_trans,
+                                                           return_flow_trans=return_flow_trans,
                                                            deliv_to_customer=deliv_to_customer,
                                                            return_not_deliv_to_customer=return_not_deliv_to_customer,
                                                            return_part_goods_customer=return_part_goods_customer,
                                                            return_after_deliv_to_customer=return_after_deliv_to_customer)
             i += 1
-
-
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 @app.task(bind=True)
 def get_ozon_transaction(*args, **kwargs):
 
     email = kwargs.get('email')
-    from product.models import OzonTransactions
+    from product.models import OzonTransactions, Order, ProductInOrder
 
     user_data = User.objects.get(email=email)
     ozon_ovner = str(user_data.ozon_id)
@@ -244,9 +237,12 @@ def get_ozon_transaction(*args, **kwargs):
         for item in items:
             name = item['name']
             sku = item['sku']
+            order_id = Order.objects.get(posting_number=posting_number)
+            price_query = Order.objects.get(sku=sku, order_id=order_id)
             dict_item = {
                 'name': name,
-                'sku': sku
+                'sku': sku,
+                'price': price_query['price']
             }
             items_array.append(dict_item)
 
@@ -374,9 +370,9 @@ def update_product_order(*args, **kwargs):
                 price_f = product_f['price']
 
                 item_services = product_f['item_services']
-                fulﬁllment = item_services['marketplace_service_item_fulfillment']
-                direct_ﬂow_trans = item_services['marketplace_service_item_direct_flow_trans']
-                return_ﬂow_trans = item_services['marketplace_service_item_return_flow_trans']
+                fulfllment = item_services['marketplace_service_item_fulfillment']
+                direct_fow_trans = item_services['marketplace_service_item_direct_flow_trans']
+                return_fow_trans = item_services['marketplace_service_item_return_flow_trans']
                 deliv_to_customer = item_services['marketplace_service_item_deliv_to_customer']
                 return_not_deliv_to_customer = item_services['marketplace_service_item_return_not_deliv_to_customer']
                 return_part_goods_customer = item_services['marketplace_service_item_return_part_goods_customer']
@@ -388,84 +384,14 @@ def update_product_order(*args, **kwargs):
                                                                quantity=quantity, offer_id=offer_id, price=price,
                                                                price_f=price_f, comission_amount=comission_amount,
                                                                payout=payout, product_id=product_id,
-                                                               fulﬁllment=fulﬁllment,
-                                                               direct_ﬂow_trans=direct_ﬂow_trans,
-                                                               return_ﬂow_trans=return_ﬂow_trans,
+                                                               fulﬁllment=fulfllment,
+                                                               direct_flow_trans=direct_fow_trans,
+                                                               return_flow_trans=return_fow_trans,
                                                                deliv_to_customer=deliv_to_customer,
                                                                return_not_deliv_to_customer=return_not_deliv_to_customer,
                                                                return_part_goods_customer=return_part_goods_customer,
                                                                return_after_deliv_to_customer=return_after_deliv_to_customer)
                 i += 1
-
-
-
-
-        # Старые заказы
-        # request_post = requests.post('https://api-seller.ozon.ru/v2/posting/fbo/list',
-        #                              json={"dir": "asc",
-        #                                    "filter": {"since": "2021-06-24T14:15:22Z", "to": "2021-10-06T14:15:22Z"},
-        #                                    "limit": 1000,
-        #                                    "with": {
-        #                                           "analytics_data": True,
-        #                                           "financial_data": True,
-        #                                       }
-        #                                    },
-        #                              headers={'Client-Id': ozon_ovner, 'Api-Key': api_key,
-        #                                       'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
-        # request_json = request_post.json()
-        #
-        # if request_json.get('messege', None) == 'Invalid Api-Key, please contact support':
-        #     return Response(data='Invalid Api-Key, please contact support', status=status.HTTP_400_BAD_REQUEST)
-        #
-        # request_items = request_json.get('result')
-        #
-        # if request_items != None:
-        #     for order in request_items:
-        #
-        #         order_id = order['order_id']
-        #         in_process_at = order['in_process_at']
-        #         status = order['status']
-        #
-        #         for items in order['products']:
-        #             sku = items['sku']
-        #             name = items['name']
-        #             quantity = items['quantity']
-        #             offer_id = items['offer_id']
-        #
-        #
-        #             if order['analytics_data'] is not None:
-        #                 analitics_data = order['analytics_data']
-        #                 delivery_place = analitics_data['city'] + analitics_data['region']
-        #                 warehouse_name = analitics_data['warehouse_name']
-        #             else:
-        #                 delivery_place = None
-        #                 warehouse_name = None
-        #
-        #             if order['financial_data'] is not None:
-        #                 financial_data = order['financial_data']
-        #
-        #                 order_products = financial_data['products']
-        #                 summ_order_price = sum(
-        #                     [order_product['quantity'] * order_product['price'] for order_product in order_products])
-        #
-        #                 if status == 'delivered' or status == 'cancelled':
-        #                     comission_amount = sum([order_product['commission_amount'] for order_product in order_products])
-        #
-        #                     for order_product in order_products:
-        #                         if order_product['picking'] is not None:
-        #                             amount = sum(order_product['picking'].amount)
-        #                         else:
-        #                             amount = None
-        #             else:
-        #                 summ_order_price = None
-        #                 comission_amount = None
-        #                 amount = None
-        #
-        #         Order.objects.create_order(order_id=order_id, in_process_at=in_process_at, price=summ_order_price,
-        #                                    user_id=data, delivery_place=delivery_place, warehouse_name=warehouse_name,
-        #                                    amount=amount, status=status)
-
-
 
         # Товары
 
@@ -503,24 +429,6 @@ def update_product_order(*args, **kwargs):
                 for source in sources:
                     sku = source['sku']
 
-            # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-                # Наработки если понадобится удаление при обновлении товара
-
-                # print(data.pk, sku)
-                # old_product_items = Product.objects.filter(sku=sku)
-                # print(old_product_items)
-                # for old_product_item in old_product_items:
-                #
-                #     days_for_production = old_product_item["days_for_production"]
-                #     reorder_days_of_supply = old_product_item["reorder_days_of_supply"]
-                #     unit_price = old_product_item["unit_price"]
-                #     logistics_price = old_product_item["logistics_price"]
-                #     additional_price = old_product_item["additional_price"]
-                #     summ_price = old_product_item["summ_price"]
-
-                # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
                 name = product_json['name']
                 stocks = product_json['stocks']
 
@@ -548,20 +456,6 @@ def update_product_order(*args, **kwargs):
                 Product.objects.create_product(preview=preview, ozon_product_id=ozon_id, sku=sku, name=name,
                                                marketing_price=marketing_price, stock_balance=balance,
                                                reserved=reserved, way_to_warehous=go_to_warehouse, user_id=data)
-
-
-                # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-                #Наработки если понадобится удаление товара при обновлении
-
-                # Product.objects.create_product(preview=preview, ozon_product_id=ozon_id, sku=sku, name=name,
-                #                                marketing_price=marketing_price, stock_balance=balance,
-                #                                way_to_warehous=go_to_warehouse, user_id=data, days_for_production=days_for_production,
-                #                                reorder_days_of_supply=reorder_days_of_supply, unit_price=unit_price,
-                #                                logistics_price=logistics_price, additional_price=additional_price,
-                #                                summ_price=summ_price)
-
-                # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 @app.task(bind=True)
@@ -789,4 +683,3 @@ def get_analitic_data(*args, **kwargs):
                                                 adv_sum_all=adv_sum_all, position_category=position_category,
                                                 postings=postings,
                                                 postings_premium=postings_premium)
-

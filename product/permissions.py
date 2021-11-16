@@ -4,4 +4,4 @@ from rest_framework.permissions import BasePermission
 class IsSubscription(BasePermission):
 
     def has_permission(self, request, view):
-        return bool(request.user and request.user.role == 'subscription')
+        return bool(request.user and request.user.role == 'subscription' or request.user.role == 'admin')

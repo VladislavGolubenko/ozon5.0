@@ -6,28 +6,9 @@ from django.db.models.signals import post_save, pre_save
 class ProductManager(models.Manager):
     def create_product(self, preview, ozon_product_id, sku, name, stock_balance, way_to_warehous, marketing_price, reserved, user_id):
 
-                       # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-                        # Наработки если понадобится обновлять данные введенные полььзователем при удалении
-
-                       # , days_for_production=None, reorder_days_of_supply=None, unit_price=None,
-                       # logistics_price=None, additional_price=None, summ_price=None):
-
-                       # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
         product = self.create(preview=preview, ozon_product_id=ozon_product_id, sku=sku, name=name,
                               stock_balance=stock_balance, way_to_warehous=way_to_warehous,
                               marketing_price=marketing_price, reserved=reserved, user_id=user_id)
-
-                              # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-                              # Наработки если понадобится обновлять данные введенные полььзователем при удалении
-
-                              # , days_for_production=days_for_production,
-                              # reorder_days_of_supply=reorder_days_of_supply, unit_price=unit_price,
-                              # logistics_price=logistics_price, additional_price=additional_price, summ_price=summ_price)
-
-                              # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         return product
 
 
@@ -43,15 +24,16 @@ class OrderManager(models.Manager):
 
 
 class ProductInOrderManager(models.Manager):
-    def create_product_in_order(self, user_id, order_id, sku, name, quantity, offer_id, price, price_f, comission_amount, payout,
-                                product_id, fulﬁllment, direct_ﬂow_trans, return_ﬂow_trans, deliv_to_customer,
-                                return_not_deliv_to_customer, return_part_goods_customer,
-                                return_after_deliv_to_customer):
+    def create_product_in_order(self, user_id, order_id, sku, name, quantity, offer_id, price, price_f,
+                                comission_amount, payout, return_after_deliv_to_customer,
+                                product_id, fulfillment, direct_flow_trans, return_flow_trans, deliv_to_customer,
+                                return_not_deliv_to_customer, return_part_goods_customer):
 
         product_in_order = self.create(user_id=user_id, order_id=order_id, sku=sku, name=name, quantity=quantity,
                                        offer_id=offer_id, price=price, comission_amount=comission_amount, payout=payout,
-                                       product_id=product_id, fulﬁllment=fulﬁllment, direct_ﬂow_trans=direct_ﬂow_trans,
-                                       return_ﬂow_trans=return_ﬂow_trans, deliv_to_customer=deliv_to_customer,
+                                       product_id=product_id, fulfillment=fulfillment,
+                                       direct_flow_trans=direct_flow_trans,
+                                       return_flow_trans=return_flow_trans, deliv_to_customer=deliv_to_customer,
                                        return_not_deliv_to_customer=return_not_deliv_to_customer, price_f=price_f,
                                        return_part_goods_customer=return_part_goods_customer,
                                        return_after_deliv_to_customer=return_after_deliv_to_customer)
@@ -105,7 +87,7 @@ class Product(models.Model):
     unit_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена юнита')
     logistics_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена логистики')
     additional_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Дополнительные затраты')
-    summ_price = models.FloatField(blank=True, null=True, verbose_name='Итого')# судя по тз из картинки нужно убрать
+    summ_price = models.FloatField(blank=True, null=True, verbose_name='Итого')
 
     marketing_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена')  # Поле равное маркетинг прайс или в случае нуля обычной цене (получается по апи)
 
