@@ -45,8 +45,8 @@ class OzonMetricsAction(APIView):
         """
 
         today = datetime.now()
-        this_day_metrics = OzonMetrics.objects.get()
-        if
+        # this_day_metrics = OzonMetrics.objects.get()
+        # if
         queryset = OzonTransactions.objects.filter(user_id=request.user.pk)
         serializer = OzonTransactionsSerializer(queryset, many=True)
         return Response(serializer.data)
@@ -153,14 +153,13 @@ class WarehouseAccountView(APIView):
     def post(self, request, days):
 
         # email = self.request.POST['json']
-        json_with_email = json.loads(request.body.decode("utf-8"))
-        email = json_with_email['email']
+        json_with_id = json.loads(request.body.decode("utf-8"))
+        id_of_user = json_with_id['id']
 
         date_sort = datetime.now() - timedelta(days=days)
 
         # products = Product.objects.filter(user_id=request.user.pk)
-        products = Product.objects.filter(user_id__email=email)
-
+        products = Product.objects.filter(user_id=id_of_user)
         datas = []
 
         for product in products:
