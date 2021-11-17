@@ -4,7 +4,8 @@ from django.db.models.signals import post_save, pre_save
 
 
 class ProductManager(models.Manager):
-    def create_product(self, preview, ozon_product_id, sku, name, stock_balance, way_to_warehous, marketing_price, reserved, user_id):
+    def create_product(self, preview, ozon_product_id, sku, name, stock_balance, way_to_warehous, marketing_price,
+                       reserved, user_id):
 
         product = self.create(preview=preview, ozon_product_id=ozon_product_id, sku=sku, name=name,
                               stock_balance=stock_balance, way_to_warehous=way_to_warehous,
@@ -89,7 +90,8 @@ class Product(models.Model):
     additional_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Дополнительные затраты')
     summ_price = models.FloatField(blank=True, null=True, verbose_name='Итого')
 
-    marketing_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена')  # Поле равное маркетинг прайс или в случае нуля обычной цене (получается по апи)
+    # Поле равное маркетинг прайс или в случае нуля обычной цене (получается по апи)
+    marketing_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена')
 
     stock_balance = models.IntegerField(verbose_name="Остатки на складе", null=True)
     way_to_warehous = models.IntegerField(verbose_name="В пути на склад", null=True)
@@ -106,6 +108,39 @@ class Product(models.Model):
         verbose_name = 'товар'
         verbose_name_plural = 'товары'
         ordering = ['id']
+
+
+class OzonTransactions(models.Model):
+
+    user_id = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="ozon_transaction_to_user",
+        null=True,
+        blank=True
+    )
+
+    operation_id = models.BigIntegerField(verbose_name="Номер опирации")
+    operation_type = models.CharField(max_length=250, verbose_name="Тип опирации")
+    operation_date = models.DateTimeField(verbose_name="Дата опирации")
+    operation_type_name = models.CharField(max_length=250, verbose_name="Название типа опирации")
+    accruals_for_sale = models.FloatField(verbose_name="Начисления за продажу")
+    sale_commission = models.FloatField(verbose_name="Комиссия за продажу")
+    amount = models.FloatField(verbose_name="Amount")
+    type = models.CharField(max_length=250, verbose_name="Тип")
+    posting_number = models.CharField(max_length=500, verbose_name="Номер доставки")
+    items = models.CharField(max_length=5000, verbose_name="Товары")
+    services = models.CharField(max_length=10000, verbose_name="Виды услуг")
+
+    def __str__(self):
+        return str(self.operation_id)
+
+    class Meta:
+        verbose_name = 'транзакцию ozon'
+        verbose_name_plural = 'транзакции ozon'
+        ordering = ['id']
+
+    objects = OzonTransactionsManager()
 
 
 class Order(models.Model):
@@ -131,6 +166,22 @@ class Order(models.Model):
     def get_product_in_order(self):
         products = ProductInOrder.objects.filter(order_id=self.pk)
         return products
+
+    def get_summ_comission(self):
+        comissions = OzonTransactions.objects.filter(posting_number=self.posting_number)
+        comissions_summ = 0
+
+        for comission in comissions:
+            comissions_summ += (comission.sale_commission)
+        return comissions_summ
+
+    def get_amount(self):
+        amounts = OzonTransactions.objects.filter(posting_number=self.posting_number)
+        amounts_summ = 0
+
+        for amount in amounts:
+            amounts_summ += (amount.amount)
+        return amounts_summ
 
     def __str__(self):
         return str(self.order_number)
@@ -189,39 +240,6 @@ class ProductInOrder(models.Model):
         ordering = ['id']
 
     objects = ProductInOrderManager()
-
-
-class OzonTransactions(models.Model):
-
-    user_id = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="ozon_transaction_to_user",
-        null=True,
-        blank=True
-    )
-
-    operation_id = models.BigIntegerField(verbose_name="Номер опирации")
-    operation_type = models.CharField(max_length=250, verbose_name="Тип опирации")
-    operation_date = models.DateTimeField(verbose_name="Дата опирации")
-    operation_type_name = models.CharField(max_length=250, verbose_name="Название типа опирации")
-    accruals_for_sale = models.FloatField(verbose_name="Начисления за продажу")
-    sale_commission = models.FloatField(verbose_name="Комиссия за продажу")
-    amount = models.FloatField(verbose_name="Amount")
-    type = models.CharField(max_length=250, verbose_name="Тип")
-    posting_number = models.CharField(max_length=500, verbose_name="Номер доставки")
-    items = models.CharField(max_length=5000, verbose_name="Товары")
-    services = models.CharField(max_length=10000, verbose_name="Виды услуг")
-
-    def __str__(self):
-        return str(self.operation_id)
-
-    class Meta:
-        verbose_name = 'транзакцию ozon'
-        verbose_name_plural = 'транзакции ozon'
-        ordering = ['id']
-
-    objects = OzonTransactionsManager()
 
 
 class OzonMetrics(models.Model):

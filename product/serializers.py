@@ -40,21 +40,25 @@ class ProductInOrderSerializer(serializers.ModelSerializer):
                   'return_after_deliv_to_customer', 'creating_date')
 
 
-class OrderSerializer(serializers.ModelSerializer):
-    get_product_in_order = ProductInOrderSerializer(many=True)
-
-    class Meta:
-        model = Order
-        fields = ('id', 'user_id', 'order_number', 'date_of_order', 'in_process_at', 'status', 'posting_number',
-                  'region', 'city', 'delivery_type', 'warehous_id', 'warehouse_name', 'creating_date', 'get_product_in_order')
-
-
 class OzonTransactionsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OzonTransactions
         fields = ('id', 'user_id', 'operation_id', 'operation_type', 'operation_date', 'operation_type_name',
                   'accruals_for_sale', 'sale_commission', 'amount', 'type', 'posting_number', 'items', 'services')
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    get_product_in_order = ProductInOrderSerializer(many=True)
+
+    # Сумма комиссий
+    # get_summ_comission = OzonTransactionsSerializer(many=True)
+    # Прибыль
+    class Meta:
+        model = Order
+        fields = ('id', 'user_id', 'order_number', 'date_of_order', 'in_process_at', 'status', 'posting_number',
+                  'region', 'city', 'delivery_type', 'warehous_id', 'warehouse_name', 'creating_date',
+                  'get_product_in_order', 'get_summ_comission', 'get_amount')
 
 
 class OzonMetricsSerializer(serializers.ModelSerializer):
