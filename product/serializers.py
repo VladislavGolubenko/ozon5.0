@@ -30,14 +30,6 @@ class ProductSerializer(serializers.ModelSerializer):
                   "unit_price", "logistics_price", "additional_price", "summ_price",  "marketing_price")
 
 
-class OrderSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Order
-        fields = ('id', 'user_id', 'order_number', 'date_of_order', 'in_process_at', 'status', 'posting_number',
-                  'region', 'city', 'delivery_type', 'warehous_id', 'warehouse_name', 'creating_date')
-
-
 class ProductInOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -46,6 +38,15 @@ class ProductInOrderSerializer(serializers.ModelSerializer):
                   'comission_amount', 'payout', 'product_id', 'fulfillment', 'direct_flow_trans', 'return_flow_trans',
                   'deliv_to_customer', 'return_not_deliv_to_customer', 'return_part_goods_customer',
                   'return_after_deliv_to_customer', 'creating_date')
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    get_product_in_order = ProductInOrderSerializer(many=True)
+
+    class Meta:
+        model = Order
+        fields = ('id', 'user_id', 'order_number', 'date_of_order', 'in_process_at', 'status', 'posting_number',
+                  'region', 'city', 'delivery_type', 'warehous_id', 'warehouse_name', 'creating_date', 'get_product_in_order')
 
 
 class OzonTransactionsSerializer(serializers.ModelSerializer):

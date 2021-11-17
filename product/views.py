@@ -55,8 +55,8 @@ class OzonMetricsAction(APIView):
         else:
             get_analitic_data.delay(email=email_query.email)
 
-        queryset = OzonTransactions.objects.filter(user_id=request.user.pk)
-        serializer = OzonTransactionsSerializer(queryset, many=True)
+        queryset = OzonMetrics.objects.filter(user_id=request.user.pk)
+        serializer = OzonMetricsSerializer(queryset, many=True)
         return Response(serializer.data)
 
 

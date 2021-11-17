@@ -127,6 +127,11 @@ class Order(models.Model):
 
     creating_date = models.DateField(auto_now_add=True, blank=True, null=True)
 
+    @property
+    def get_product_in_order(self):
+        products = ProductInOrder.objects.filter(order_id=self.pk)
+        return products
+
     def __str__(self):
         return str(self.order_number)
 
