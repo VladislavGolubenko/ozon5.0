@@ -178,3 +178,10 @@ class TransactionSerializer(serializers.ModelSerializer):
 
         model = Transaction
         fields = ("id_user", "transaction_number", "type", "rate", "summ")
+
+
+class RateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Rate
+        fields = "__all__"

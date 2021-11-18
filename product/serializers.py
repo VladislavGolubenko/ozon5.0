@@ -34,7 +34,7 @@ class ProductInOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProductInOrder
-        fields = ('id', 'user_id', 'order_id', 'sku', 'name', 'quantity', 'offer_id', 'price', 'price_f',
+        fields = ('id', 'preview', 'user_id', 'order_id', 'sku', 'name', 'quantity', 'offer_id', 'price', 'price_f',
                   'comission_amount', 'payout', 'product_id', 'fulfillment', 'direct_flow_trans', 'return_flow_trans',
                   'deliv_to_customer', 'return_not_deliv_to_customer', 'return_part_goods_customer',
                   'return_after_deliv_to_customer', 'creating_date')

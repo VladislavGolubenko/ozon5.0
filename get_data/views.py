@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.response import Response
 from django.http import HttpResponse
 from rest_framework.views import APIView
@@ -14,6 +15,29 @@ class UserAction(APIView):
         user = User.objects.all()
         serializer = UserSerializer(user, many=True)
         return Response(serializer.data)
+
+
+class RatesView(APIView):
+
+    def get(self, request):
+
+        rates = Rate.objects.all()
+        serializer = RateSerializer(rates, many=True)
+        return Response(serializer.data)
+
+
+class RateView(APIView):
+
+    def put(self, request, pk):
+
+        queryset = self.get_object(pk)
+        serializer = RateSerializer(queryset, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 def test_action(request):
