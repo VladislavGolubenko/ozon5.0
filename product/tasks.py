@@ -78,14 +78,24 @@ def get_product(*args, **kwargs):
 @app.task(bind=True)
 def get_order(*args, **kwargs):
     email = kwargs.get('email')
-    from product.models import Order, ProductInOrder, OzonTransactions
+    from product.models import Order, ProductInOrder, OzonTransactions, Product
 
     user_data = User.objects.get(email=email)
     ozon_ovner = str(user_data.ozon_id)
 
+    year = datetime.now().year
+    month = datetime.now().month
+    day = datetime.now().day
+
+    if day < 10:
+        date_to = f"{year}-{month}-0{day}T00:00:00Z"
+    else:
+        date_to = f"{year}-{month}-{day}T23:30:00Z"
+
+
     request_post = requests.post('https://api-seller.ozon.ru/v2/posting/fbo/list',
                                  json={"dir": "asc",
-                                       "filter": {"since": "2021-06-24T14:15:22Z", "to": "2021-10-06T14:15:22Z"},
+                                       "filter": {"since": "2021-02-01T00:00:00Z", "to": date_to},
                                        "limit": 1000,
                                        "with": {
                                            "analytics_data": True,
@@ -161,7 +171,15 @@ def get_order(*args, **kwargs):
             return_part_goods_customer = item_services['marketplace_service_item_return_part_goods_customer']
             return_after_deliv_to_customer = item_services['marketplace_service_item_return_after_deliv_to_customer']
 
-            ProductInOrder.objects.create_product_in_order(user_id=user_data, sku=sku, name=name, order_id=order_save,
+            image_queryset = Product.objects.filter(sku=sku).first()
+
+            if image_queryset is not None:
+                preview = image_queryset.preview
+            else:
+                preview = None
+
+            ProductInOrder.objects.create_product_in_order(preview=preview,
+                                                           user_id=user_data, sku=sku, name=name, order_id=order_save,
                                                            quantity=quantity, offer_id=offer_id, price=price,
                                                            price_f=price_f, comission_amount=comission_amount,
                                                            payout=payout, product_id=product_id,
@@ -237,14 +255,18 @@ def get_ozon_transaction(*args, **kwargs):
         for item in items:
             name = item['name']
             sku = item['sku']
-            order_id = Order.objects.get(posting_number=posting_number)
-            price_query = Order.objects.get(sku=sku, order_id=order_id)
-            dict_item = {
-                'name': name,
-                'sku': sku,
-                'price': price_query['price']
-            }
-            items_array.append(dict_item)
+
+            if posting_number is not None and posting_number != '':
+                order_id = Order.objects.filter(posting_number=posting_number).first()
+
+                if order_id is not None:
+                    price_query = Order.objects.get(sku=sku, id=order_id.pk)
+                    dict_item = {
+                        'name': name,
+                        'sku': sku,
+                        'price': price_query['price']
+                    }
+                    items_array.append(dict_item)
 
         services_array = []
         for service in services:
@@ -303,10 +325,27 @@ def update_product_order(*args, **kwargs):
         api_key = data.api_key
 
         # Заказы
+        date_sort = datetime.now() - timedelta(days=1)
+
+        year = datetime.now().year
+        month = datetime.now().month
+        day = datetime.now().day
+        yesterday = date_sort.day
+
+        if yesterday < 10:
+            date_from = f"{year}-{month}-0{yesterday}T00:00:00Z"
+        else:
+            date_from = f"{year}-{month}-{yesterday}T00:00:00Z"
+
+        if day < 10:
+            date_to = f"{year}-{month}-0{day}T23:30:00Z"
+        else:
+            date_to = f"{year}-{month}-{day}T23:30:00Z"
+
 
         request_post = requests.post('https://api-seller.ozon.ru/v2/posting/fbo/list',
                                      json={"dir": "asc",
-                                           "filter": {"since": "2021-06-24T14:15:22Z", "to": "2021-10-06T14:15:22Z"},
+                                           "filter": {"since": date_from, "to": date_to},
                                            "limit": 1000,
                                            "with": {
                                                "analytics_data": True,

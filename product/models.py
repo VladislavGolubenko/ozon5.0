@@ -25,12 +25,13 @@ class OrderManager(models.Manager):
 
 
 class ProductInOrderManager(models.Manager):
-    def create_product_in_order(self, user_id, order_id, sku, name, quantity, offer_id, price, price_f,
+    def create_product_in_order(self, preview, user_id, order_id, sku, name, quantity, offer_id, price, price_f,
                                 comission_amount, payout, return_after_deliv_to_customer,
                                 product_id, fulfillment, direct_flow_trans, return_flow_trans, deliv_to_customer,
                                 return_not_deliv_to_customer, return_part_goods_customer):
 
-        product_in_order = self.create(user_id=user_id, order_id=order_id, sku=sku, name=name, quantity=quantity,
+        product_in_order = self.create(preview=preview,
+                                       user_id=user_id, order_id=order_id, sku=sku, name=name, quantity=quantity,
                                        offer_id=offer_id, price=price, comission_amount=comission_amount, payout=payout,
                                        product_id=product_id, fulfillment=fulfillment,
                                        direct_flow_trans=direct_flow_trans,
@@ -153,7 +154,7 @@ class Order(models.Model):
     in_process_at = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="Дата принятия в обработку",
                                          blank=True, null=True)
     status = models.CharField(max_length=100, verbose_name="Статус заказ", null=True, blank=True)
-    posting_number = models.CharField(max_length=15, verbose_name="Номер отправления", blank=True, null=True)
+    posting_number = models.CharField(max_length=100, verbose_name="Номер отправления", blank=True, null=True)
     region = models.CharField(max_length=500, verbose_name='Регион', blank=True, null=True)
     city = models.CharField(max_length=500, verbose_name="Город", blank=True, null=True)
     delivery_type = models.CharField(max_length=100, verbose_name="Тип доставки", blank=True, null=True)
@@ -196,6 +197,7 @@ class Order(models.Model):
 
 class ProductInOrder(models.Model):
 
+    preview = models.CharField(max_length=300, verbose_name='Превью', null=True, blank=True)
     user_id = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -215,7 +217,7 @@ class ProductInOrder(models.Model):
     sku = models.CharField(max_length=100, verbose_name='SKU')
     name = models.CharField(max_length=300, verbose_name='Название товара')
     quantity = models.IntegerField(verbose_name='Кол-во')
-    offer_id = models.CharField(max_length=15, verbose_name="Номер предложения")
+    offer_id = models.CharField(max_length=100, verbose_name="Номер предложения")
     price = models.FloatField(verbose_name="Цена товара")
     price_f = models.FloatField(verbose_name="Цена товара в заказе", blank=True, null=True)
     comission_amount = models.FloatField(verbose_name="Сумма комиссий")
