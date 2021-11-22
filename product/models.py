@@ -1,6 +1,8 @@
 from django.db import models
 from get_data.models import User
 from django.db.models.signals import post_save, pre_save
+from datetime import datetime, date
+from datetime import timedelta
 
 
 class ProductManager(models.Manager):
@@ -74,41 +76,6 @@ class MetricsManager(models.Manager):
                                    adv_sum_all=adv_sum_all, position_category=position_category, postings=postings,
                                    postings_premium=postings_premium)
         return ozon_metrics
-
-
-class Product(models.Model):
-
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="products_to_user", null=True, blank=True)
-
-    preview = models.CharField(max_length=300, verbose_name='Превью')
-    ozon_product_id = models.IntegerField(verbose_name='ID товара')
-    sku = models.CharField(max_length=100, verbose_name='SKU')
-    name = models.CharField(max_length=300, verbose_name='Название товара')
-    days_for_production = models.IntegerField(blank=True, null=True, verbose_name='Времени необходимо для производства')
-    reorder_days_of_supply = models.IntegerField(blank=True, null=True, verbose_name='Глубина поставки')
-    unit_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена юнита')
-    logistics_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена логистики')
-    additional_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Дополнительные затраты')
-    summ_price = models.FloatField(blank=True, null=True, verbose_name='Итого')
-
-    # Поле равное маркетинг прайс или в случае нуля обычной цене (получается по апи)
-    marketing_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена')
-
-    stock_balance = models.IntegerField(verbose_name="Остатки на складе", null=True)
-    way_to_warehous = models.IntegerField(verbose_name="В пути на склад", null=True)
-    reserved = models.IntegerField(verbose_name="Зарезервировано", blank=True, null=True)
-
-    creating_date = models.DateField(auto_now_add=True, blank=True, null=True)
-
-    objects = ProductManager()
-
-    def __str__(self):
-        return str(self.name)
-
-    class Meta:
-        verbose_name = 'товар'
-        verbose_name_plural = 'товары'
-        ordering = ['id']
 
 
 class OzonTransactions(models.Model):
@@ -193,6 +160,56 @@ class Order(models.Model):
         ordering = ['id']
 
     objects = OrderManager()
+
+
+class Product(models.Model):
+
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="products_to_user", null=True, blank=True)
+
+    preview = models.CharField(max_length=300, verbose_name='Превью')
+    ozon_product_id = models.IntegerField(verbose_name='ID товара')
+    sku = models.CharField(max_length=100, verbose_name='SKU')
+    name = models.CharField(max_length=300, verbose_name='Название товара')
+    days_for_production = models.IntegerField(blank=True, null=True, verbose_name='Времени необходимо для производства')
+    reorder_days_of_supply = models.IntegerField(blank=True, null=True, verbose_name='Глубина поставки')
+    unit_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена юнита')
+    logistics_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена логистики')
+    additional_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Дополнительные затраты')
+    summ_price = models.FloatField(blank=True, null=True, verbose_name='Итого')
+
+    # Поле равное маркетинг прайс или в случае нуля обычной цене (получается по апи)
+    marketing_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена')
+
+    stock_balance = models.IntegerField(verbose_name="Остатки на складе", null=True)
+    way_to_warehous = models.IntegerField(verbose_name="В пути на склад", null=True)
+    reserved = models.IntegerField(verbose_name="Зарезервировано", blank=True, null=True)
+
+    creating_date = models.DateField(auto_now_add=True, blank=True, null=True)
+
+    objects = ProductManager()
+
+    @property
+    def order_for_thirty_days(self):
+        date_sort = datetime.now() - timedelta(days=30)
+        orders = Order.objects.filter(date_of_order__gte=date_sort, user_id=self.user_id)
+        thirty_days = []
+        for order in orders:
+
+            products_in_order = ProductInOrder.objects.filter(order_id=order.pk)
+            for product_in_order in products_in_order:
+                if product_in_order.sku == self.sku:
+                    thirty_days.append(product_in_order)
+
+        lenth_thirty_days = len(thirty_days)
+        return lenth_thirty_days
+
+    def __str__(self):
+        return str(self.name)
+
+    class Meta:
+        verbose_name = 'товар'
+        verbose_name_plural = 'товары'
+        ordering = ['id']
 
 
 class ProductInOrder(models.Model):

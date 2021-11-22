@@ -39,6 +39,12 @@ class RateView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def get(self, request, pk):
+
+        rate = self.get_object(pk)
+        serializer = RateSerializer(rate)
+        return Response(serializer.data)
+
 
 def test_action(request):
     user_transaction_query = Transaction.objects.filter(id_user=1)

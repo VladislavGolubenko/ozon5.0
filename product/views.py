@@ -4,7 +4,8 @@ from django.http import HttpResponse, Http404
 from datetime import datetime, date
 from datetime import timedelta
 from django_filters import rest_framework as filters
-# from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.pagination import LimitOffsetPagination
+
 from .service import OrderFilter
 
 from rest_framework import status
@@ -31,7 +32,9 @@ class OzonTransactionsAction(APIView):
 
     def get(self, request):
         queryset = OzonTransactions.objects.filter(user_id=request.user.pk)
-        serializer = OzonTransactionsSerializer(queryset, many=True)
+        paginator = LimitOffsetPagination()
+        result_page = paginator.paginate_queryset(queryset, request)
+        serializer = OzonTransactionsSerializer(result_page, many=True)
         return Response(serializer.data)
 
 
@@ -56,7 +59,9 @@ class OzonMetricsAction(APIView):
             get_analitic_data.delay(email=email_query.email)
 
         queryset = OzonMetrics.objects.filter(user_id=request.user.pk)
-        serializer = OzonMetricsSerializer(queryset, many=True)
+        paginator = LimitOffsetPagination()
+        result_page = paginator.paginate_queryset(queryset, request)
+        serializer = OzonMetricsSerializer(result_page, many=True)
         return Response(serializer.data)
 
 
@@ -64,8 +69,11 @@ class ProductListAction(APIView):
 
     def get(self, request):
         queryset = Product.objects.filter(user_id=request.user.pk)
-        serializer = ProductSerializer(queryset, many=True)
-        return Response(serializer.data)
+        paginator = LimitOffsetPagination()
+        result_page = paginator.paginate_queryset(queryset, request)
+        serializer = ProductSerializer(result_page, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         serializer = ProductSerializer(data=request.data)
@@ -107,6 +115,7 @@ class OrderListAction(ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     serializer_class = OrderSerializer
+    pagination_class = LimitOffsetPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = OrderFilter
 
@@ -264,5 +273,7 @@ class WarehouseAccountView(APIView):
             }
 
             datas.append(data)
+            paginator = LimitOffsetPagination()
+            result_page = paginator.paginate_queryset(datas, request)
 
-        return Response(data=datas, status=status.HTTP_200_OK)
+        return Response(data=result_page, status=status.HTTP_200_OK)
