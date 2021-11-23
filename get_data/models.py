@@ -6,6 +6,8 @@ from django.contrib.auth.models import (
     BaseUserManager,
 )
 from django.contrib.auth.models import User
+from datetime import datetime, date
+from datetime import timedelta
 
 
 class UserManager(BaseUserManager):
@@ -131,6 +133,29 @@ class User(AbstractBaseUser, PermissionsMixin):
 
         return return_transaction
 
+    def user_tarif_data(self):
+        rate_data = []
+        try:
+            rate_query = Rate.objects.get(slag=self.role)
+            rate = rate_query.rate_name
+
+            try:
+                transaction_query = Transaction.objects.get(id_user=self.pk, rate=rate_query.pk)
+                if transaction_query.date_issued is not None:
+                    date_issued = transaction_query.date_issued
+                    next_date_issued = date_issued + timedelta(rate_query.validity)
+            except Transaction.DoesNotExist:
+                next_date_issued = None
+
+        except Rate.DoesNotExist:
+            rate = None
+            next_date_issued = None
+
+        rate_data.append(rate)
+        rate_data.append(next_date_issued)
+
+        return rate_data
+
     class Meta:
         verbose_name = "пользователя"
         verbose_name_plural = "пользователи"
@@ -158,6 +183,8 @@ class Rate(models.Model):
     validity = models.IntegerField(verbose_name='Срок действия в днях')
     price = models.FloatField(verbose_name="Стоимость тарифа")
     description = models.CharField(max_length=1500, verbose_name="Краткое описание тарифа")
+    slag = models.CharField(max_length=100, verbose_name="роль, которую дает тариф", null=True, blank=True,
+                            default="subscription")
 
     def __str__(self):
         return str(self.rate_name)

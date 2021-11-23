@@ -277,3 +277,20 @@ class WarehouseAccountView(APIView):
             result_page = paginator.paginate_queryset(datas, request)
 
         return Response(data=result_page, status=status.HTTP_200_OK)
+
+
+class ObjectInTableView(APIView):
+    def get(self, request, table):
+
+        if table == 'product':
+            objects = Product.objects.all()
+        elif table == 'ozon_transactions':
+            objects = OzonTransactions.objects.all()
+        elif table == 'order':
+            objects = Order.objects.all()
+        elif table == 'ozon_metrics':
+            objects = OzonMetrics.objects.all()
+
+        summ_of_object = len(objects)
+
+        return Response(summ_of_object, status=status.HTTP_200_OK)
