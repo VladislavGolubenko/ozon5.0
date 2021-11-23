@@ -290,6 +290,8 @@ class ObjectInTableView(APIView):
             objects = Order.objects.all()
         elif table == 'ozon_metrics':
             objects = OzonMetrics.objects.all()
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
         summ_of_object = len(objects)
 

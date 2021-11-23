@@ -13,7 +13,8 @@ class MeViewSet(APIView):
 
     def get(self, request, *args, **kwargs):
         user_data = UserSerializer(
-            User.objects.filter(pk=self.request.user.pk).first())
+            User.objects.get(pk=self.request.user.pk)
+        )
 
         # print(request.user.role)
         # print(type(request.user.role))
