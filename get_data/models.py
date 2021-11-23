@@ -139,9 +139,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         try:
             rate_query = Rate.objects.get(slag=self.role)
             rate = rate_query.rate_name
+            tarif_action = rate_query.validity
 
             try:
                 transaction_query = Transaction.objects.get(id_user=self.pk, rate=rate_query.pk)
+
                 if transaction_query.date_issued is not None:
                     date_issued = transaction_query.date_issued
                     next_date_issued = date_issued + timedelta(rate_query.validity)
@@ -151,9 +153,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         except Rate.DoesNotExist:
             rate = None
             next_date_issued = None
+            tarif_action = None
 
         rate_data.append(rate)
         rate_data.append(next_date_issued)
+        rate_data.append(tarif_action)
 
         return rate_data
 
