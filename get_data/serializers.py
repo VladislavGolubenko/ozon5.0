@@ -69,7 +69,6 @@ class UserSerializer(serializers.ModelSerializer):
                 )
 
         elif validated_data.get("new_password") is not None:
-            print('заходит в сохранение нового пароля')
             user = User.objects.get(email=validated_data.get("email"))
             if user.password == instance.password:
                 for attr, value in validated_data.items():

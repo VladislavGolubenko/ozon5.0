@@ -134,6 +134,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return return_transaction
 
     def user_tarif_data(self):
+
         rate_data = []
         try:
             rate_query = Rate.objects.get(slag=self.role)
@@ -183,8 +184,7 @@ class Rate(models.Model):
     validity = models.IntegerField(verbose_name='Срок действия в днях')
     price = models.FloatField(verbose_name="Стоимость тарифа")
     description = models.CharField(max_length=1500, verbose_name="Краткое описание тарифа")
-    slag = models.CharField(max_length=100, verbose_name="роль, которую дает тариф", null=True, blank=True,
-                            default="subscription")
+    slag = models.CharField(max_length=100, verbose_name="роль, которую дает тариф")
 
     def __str__(self):
         return str(self.rate_name)
