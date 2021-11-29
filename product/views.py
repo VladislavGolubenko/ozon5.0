@@ -6,7 +6,7 @@ from datetime import timedelta
 from django_filters import rest_framework as filters
 from rest_framework.pagination import LimitOffsetPagination
 
-from .service import OrderFilter
+from rest_framework.filters import OrderingFilter
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -20,27 +20,39 @@ from .models import *
 from .tasks import get_analitic_data, update_analitics_data
 
 
-class ProductInOrderAction(APIView):
+class ProductInOrderAction(ListAPIView):
 
-    def get(self, request):
-        queryset = ProductInOrder.objects.filter(user_id=request.user.pk)
-        serializer = ProductInOrderSerializer(queryset, many=True)
-        return Response(serializer.data)
+    queryset = ProductInOrder.objects.all()
+    serializer_class = ProductInOrderSerializer
+    pagination_class = LimitOffsetPagination
+    filter_backends = (OrderingFilter,)
+    ordering_fields = '__all__'
 
-
-class OzonTransactionsAction(APIView):
-
-    def get(self, request):
-        queryset = OzonTransactions.objects.filter(user_id=request.user.pk)
-        paginator = LimitOffsetPagination()
-        result_page = paginator.paginate_queryset(queryset, request)
-        serializer = OzonTransactionsSerializer(result_page, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        return ProductInOrder.objects.filter(user_id=self.request.user.pk)
 
 
-class OzonMetricsAction(APIView):
+class OzonTransactionsAction(ListAPIView):
 
-    def get(self, request):
+    queryset = OzonTransactions.objects.all()
+    serializer_class = OzonTransactionsSerializer
+    pagination_class = LimitOffsetPagination
+    filter_backends = (OrderingFilter,)
+    ordering_fields = '__all__'
+
+    def get_queryset(self):
+        return OzonTransactions.objects.filter(user_id=self.request.user.pk)
+
+
+class OzonMetricsAction(ListAPIView):
+
+    queryset = OzonMetrics.objects.all()
+    serializer_class = OzonMetricsSerializer
+    pagination_class = LimitOffsetPagination
+    filter_backends = (OrderingFilter,)
+    ordering_fields = '__all__'
+
+    def get_queryset(self):
 
         """
         При переходе на отображение страницы перед отображением будет должны обновиться (или подтянуться, в случае
@@ -50,37 +62,71 @@ class OzonMetricsAction(APIView):
 
         today = datetime.now().date()
         print(today)
-        this_day_metrics = OzonMetrics.objects.filter(user_id=request.user.pk, creating_date=today)
-        email_query = User.objects.get(id=request.user.pk)
+        this_day_metrics = OzonMetrics.objects.filter(user_id=self.request.user.pk, creating_date=today)
+        email_query = User.objects.get(id=self.request.user.pk)
 
         if this_day_metrics.exists():
             update_analitics_data.delay(email=email_query.email, today=today)
         else:
             get_analitic_data.delay(email=email_query.email)
 
-        queryset = OzonMetrics.objects.filter(user_id=request.user.pk)
-        paginator = LimitOffsetPagination()
-        result_page = paginator.paginate_queryset(queryset, request)
-        serializer = OzonMetricsSerializer(result_page, many=True)
-        return Response(serializer.data)
+        return OzonMetrics.objects.filter(user_id=self.request.user.pk)
 
 
-class ProductListAction(APIView):
+# class ProductFilter(DjangoFilterBackend):
+#
+#     def filter_queryset(self, request, queryset, view):
+#         filter_class = self.get_filter_class(view, queryset)
+#
+#         if filter_class:
+#             return filter_class(request.query_params, queryset=queryset, request=request).qs
+#         return queryset
 
-    def get(self, request):
-        queryset = Product.objects.filter(user_id=request.user.pk)
-        paginator = LimitOffsetPagination()
-        result_page = paginator.paginate_queryset(queryset, request)
-        serializer = ProductSerializer(result_page, many=True)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+class ProductListAction(ListAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    pagination_class = LimitOffsetPagination
+    filter_backends = (OrderingFilter,)
+    ordering_fields = '__all__'
 
-    def post(self, request):
-        serializer = ProductSerializer(data=request.data)
+    def get_queryset(self):
+        return Product.objects.filter(user_id=self.request.user.pk)
+
+    def post(self):
+        serializer = ProductSerializer(data=self.request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# class ProductListAction(APIView):
+#
+#     ordering_fields = ['id', ]
+#     filter_fields = ('unit_price', )
+#
+#     def get(self, request):
+#         queryset = Product.objects.filter(user_id=request.user.pk)
+#
+#         filter = ProductFilter()
+#         filtered_queryset = filter.filter_queryset(request, queryset, self)
+#         paginator = LimitOffsetPagination()
+#
+#         if filtered_queryset.exists():
+#
+#             result_page = paginator.paginate_queryset(queryset, request)
+#             serializer = ProductSerializer(result_page, many=True)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         else:
+#             return Response([], status=status.HTTP_200_OK)
+#
+#
+#     def post(self, request):
+#         serializer = ProductSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProductDetailAction(APIView):
@@ -116,8 +162,8 @@ class OrderListAction(ListAPIView):
 
     serializer_class = OrderSerializer
     pagination_class = LimitOffsetPagination
-    filter_backends = (filters.DjangoFilterBackend,)
-    filterset_class = OrderFilter
+    filter_backends = (filters.DjangoFilterBackend, OrderingFilter,)
+    ordering_fields = '__all__'
 
     def get_queryset(self):
         return Order.objects.filter(user_id=self.request.user.pk)
