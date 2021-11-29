@@ -342,3 +342,28 @@ class ObjectInTableView(APIView):
         summ_of_object = len(objects)
 
         return Response(summ_of_object, status=status.HTTP_200_OK)
+
+
+# class DashbordView(ListAPIView):
+#     permission_classes = [permissions.IsAuthenticated]
+#
+#     queryset = OzonTransactions.objects.all()
+#     serializer_class = OzonTransactionsSerializer
+#     pagination_class = LimitOffsetPagination
+#     filter_backends = (filters.DjangoFilterBackend, OrderingFilter,)
+#     ordering_fields = '__all__'
+#
+#     def get_queryset(self):
+#         date = self.request.GET['date']
+#         sku = self.request.GET['sku']
+#         if date is None:
+#             raise ValueError("The given date must be set")
+#         else:
+#             #Таблица "Дашборт"
+#             filter_date = datetime.now() - timedelta(date)
+#
+#             delivered_to_customer_query = OzonTransactions.objects.filter(operation_date__lte=filter_date, operation_type="OperationAgentDeliveredToCustomer", sku=sku)
+#             for delivered_to_customer in delivered_to_customer_query:
+#                 sales = delivered_to_customer['price']  # Продажи
+
+

@@ -243,7 +243,7 @@ def get_ozon_transaction(*args, **kwargs):
         accruals_for_sale = operation['accruals_for_sale']
         sale_commission = operation['sale_commission']
         amount = operation['amount']
-        type = operation['type']
+        finance_type = operation['type']
 
         posting = operation['posting']
         posting_number = posting['posting_number']
@@ -259,12 +259,13 @@ def get_ozon_transaction(*args, **kwargs):
             if posting_number is not None and posting_number != '':
                 order_id = Order.objects.filter(posting_number=posting_number).first()
 
-                if order_id is not None:
-                    price_query = Order.objects.get(sku=sku, id=order_id.pk)
+                if posting_number is not None and order_id is not None:
+                    price_query = ProductInOrder.objects.get(sku=sku, order_id=order_id.pk)
+
                     dict_item = {
                         'name': name,
                         'sku': sku,
-                        'price': price_query['price']
+                        'price': price_query.price
                     }
                     items_array.append(dict_item)
 
@@ -295,7 +296,7 @@ def get_ozon_transaction(*args, **kwargs):
                                                          operation_type_name=operation_type_name,
                                                          accruals_for_sale=accruals_for_sale,
                                                          sale_commission=sale_commission,
-                                                         amount=amount, type=type, posting_number=posting_number,
+                                                         amount=amount, type=finance_type, posting_number=posting_number,
                                                          items=items_array, services=services_array)
 
 
@@ -500,7 +501,7 @@ def update_product_order(*args, **kwargs):
 @app.task(bind=True)
 def found_new_ozon_transaction(*args, **kwargs):
 
-    from product.models import OzonTransactions
+    from product.models import OzonTransactions, Order, ProductInOrder
     from get_data.models import User
 
     user_data = User.objects.filter(api_key__isnull=False)
@@ -557,7 +558,7 @@ def found_new_ozon_transaction(*args, **kwargs):
             accruals_for_sale = operation['accruals_for_sale']
             sale_commission = operation['sale_commission']
             amount = operation['amount']
-            type = operation['type']
+            finance_type = operation['type']
 
             posting = operation['posting']
             posting_number = posting['posting_number']
@@ -569,11 +570,19 @@ def found_new_ozon_transaction(*args, **kwargs):
             for item in items:
                 name = item['name']
                 sku = item['sku']
-                dict_item = {
-                    'name': name,
-                    'sku': sku
-                }
-                items_array.append(dict_item)
+
+                if posting_number is not None and posting_number != '':
+                    order_id = Order.objects.filter(posting_number=posting_number).first()
+
+                    if posting_number is not None and order_id is not None:
+                        price_query = ProductInOrder.objects.get(sku=sku, order_id=order_id.pk)
+
+                        dict_item = {
+                            'name': name,
+                            'sku': sku,
+                            'price': price_query.price
+                        }
+                        items_array.append(dict_item)
 
             services_array = []
             for service in services:
@@ -603,7 +612,7 @@ def found_new_ozon_transaction(*args, **kwargs):
                                                              operation_type_name=operation_type_name,
                                                              accruals_for_sale=accruals_for_sale,
                                                              sale_commission=sale_commission,
-                                                             amount=amount, type=type, posting_number=posting_number,
+                                                             amount=amount, type=finance_type, posting_number=posting_number,
                                                              items=items_array, services=services_array)
 
 
