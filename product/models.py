@@ -46,12 +46,12 @@ class ProductInOrderManager(models.Manager):
 
 class OzonTransactionsManager(models.Manager):
     def create_ozon_transaction(self, user_id, operation_id, operation_type, operation_date, operation_type_name,
-                                accruals_for_sale, sale_commission, amount, type, posting_number, items, services):
+                                accruals_for_sale, sale_commission, amount, type, posting_number, services):
 
         ozon_transaction = self.create(user_id=user_id, operation_id=operation_id, operation_type=operation_type,
                                        operation_date=operation_date, operation_type_name=operation_type_name,
                                        accruals_for_sale=accruals_for_sale, sale_commission=sale_commission,
-                                       amount=amount, type=type, posting_number=posting_number, items=items,
+                                       amount=amount, type=type, posting_number=posting_number,
                                        services=services)
         return ozon_transaction
 
@@ -97,8 +97,13 @@ class OzonTransactions(models.Model):
     amount = models.FloatField(verbose_name="Amount")
     type = models.CharField(max_length=250, verbose_name="Тип")
     posting_number = models.CharField(max_length=500, verbose_name="Номер доставки")
-    items = models.CharField(max_length=5000, verbose_name="Товары")
+    # items = models.CharField(max_length=5000, verbose_name="Товары")
     services = models.CharField(max_length=10000, verbose_name="Виды услуг")
+
+    product = models.ManyToManyField("ProductInOrder", related_name="product_in_transaction", blank=True, null=True)
+
+
+
 
     def __str__(self):
         return str(self.operation_id)

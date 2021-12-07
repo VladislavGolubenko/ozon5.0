@@ -95,7 +95,8 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ("id", "email", "password", "first_name", "last_name", "patronymic", "role", "date_create",
                   "post_agreement", 'card', "card_year", "card_ovner", "ozon_id", "api_key", 'name_org', 'bank', 'inn',
-                  'orgn', 'kpp', 'bank_account', 'correspondent_bank_account', 'bik', 'new_password', 'user_tarif_data')
+                  'orgn', 'kpp', 'bank_account', 'correspondent_bank_account', 'bik', 'new_password', 'user_tarif_data',
+                  'return_status')
 
 
 class TransactionSerializer(serializers.ModelSerializer):
@@ -176,7 +177,7 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
 
         model = Transaction
-        fields = ("id_user", "transaction_number", "type", "rate", "summ")
+        fields = ("id_user", "transaction_number", "type", "rate", "summ", "status")
 
 
 class RateSerializer(serializers.ModelSerializer):

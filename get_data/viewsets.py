@@ -16,9 +16,6 @@ class MeViewSet(APIView):
             User.objects.get(pk=self.request.user.pk)
         )
 
-        # print(request.user.role)
-        # print(type(request.user.role))
-
         return Response(data=user_data.data, status=status.HTTP_200_OK)
 
 

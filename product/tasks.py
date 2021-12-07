@@ -92,7 +92,6 @@ def get_order(*args, **kwargs):
     else:
         date_to = f"{year}-{month}-{day}T23:30:00Z"
 
-
     request_post = requests.post('https://api-seller.ozon.ru/v2/posting/fbo/list',
                                  json={"dir": "asc",
                                        "filter": {"since": "2021-02-01T00:00:00Z", "to": date_to},
@@ -139,9 +138,6 @@ def get_order(*args, **kwargs):
                                                 posting_number=posting_number, region=region, city=city,
                                                 delivery_type=delivery_type, warehous_id=warehous_id,
                                                 warehouse_name=warehouse_name)
-
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#  из двух списков нужно сформировать один по индексу
 
         financial_data = order['financial_data']
         product_financial = financial_data['products']
@@ -191,7 +187,6 @@ def get_order(*args, **kwargs):
                                                            return_part_goods_customer=return_part_goods_customer,
                                                            return_after_deliv_to_customer=return_after_deliv_to_customer)
             i += 1
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 @app.task(bind=True)
@@ -250,25 +245,6 @@ def get_ozon_transaction(*args, **kwargs):
 
         items = operation['items']
         services = operation['services']
-
-        items_array = []
-        for item in items:
-            name = item['name']
-            sku = item['sku']
-
-            if posting_number is not None and posting_number != '':
-                order_id = Order.objects.filter(posting_number=posting_number).first()
-
-                if posting_number is not None and order_id is not None:
-                    price_query = ProductInOrder.objects.get(sku=sku, order_id=order_id.pk)
-
-                    dict_item = {
-                        'name': name,
-                        'sku': sku,
-                        'price': price_query.price
-                    }
-                    items_array.append(dict_item)
-
         services_array = []
         for service in services:
             marketplace_services = (
@@ -291,13 +267,21 @@ def get_ozon_transaction(*args, **kwargs):
                 }
                 services_array.append(dict_services)
 
-        OzonTransactions.objects.create_ozon_transaction(user_id=user_data, operation_id=operation_id,
+        transaction_save = OzonTransactions.objects.create_ozon_transaction(user_id=user_data, operation_id=operation_id,
                                                          operation_type=operation_type, operation_date=operation_date,
                                                          operation_type_name=operation_type_name,
                                                          accruals_for_sale=accruals_for_sale,
                                                          sale_commission=sale_commission,
-                                                         amount=amount, type=finance_type, posting_number=posting_number,
-                                                         items=items_array, services=services_array)
+                                                         amount=amount, type=finance_type,
+                                                         posting_number=posting_number, services=services_array)
+
+        for item in items:
+            sku = item['sku']
+
+            order = Order.objects.filter(posting_number=posting_number).first()
+            if order:
+                product_relation = ProductInOrder.objects.filter(sku=sku, order_id=order.pk).first()
+                transaction_save.product.add(product_relation.pk)
 
 
 @app.task(bind=True)
@@ -566,24 +550,6 @@ def found_new_ozon_transaction(*args, **kwargs):
             items = operation['items']
             services = operation['services']
 
-            items_array = []
-            for item in items:
-                name = item['name']
-                sku = item['sku']
-
-                if posting_number is not None and posting_number != '':
-                    order_id = Order.objects.filter(posting_number=posting_number).first()
-
-                    if posting_number is not None and order_id is not None:
-                        price_query = ProductInOrder.objects.get(sku=sku, order_id=order_id.pk)
-
-                        dict_item = {
-                            'name': name,
-                            'sku': sku,
-                            'price': price_query.price
-                        }
-                        items_array.append(dict_item)
-
             services_array = []
             for service in services:
                 marketplace_services = (
@@ -606,14 +572,23 @@ def found_new_ozon_transaction(*args, **kwargs):
                     }
                     services_array.append(dict_services)
 
-            OzonTransactions.objects.create_ozon_transaction(user_id=user_data, operation_id=operation_id,
-                                                             operation_type=operation_type,
-                                                             operation_date=operation_date,
-                                                             operation_type_name=operation_type_name,
-                                                             accruals_for_sale=accruals_for_sale,
-                                                             sale_commission=sale_commission,
-                                                             amount=amount, type=finance_type, posting_number=posting_number,
-                                                             items=items_array, services=services_array)
+            transaction_save = OzonTransactions.objects.create_ozon_transaction(user_id=user_data, operation_id=operation_id,
+                                                                                operation_type=operation_type,
+                                                                                operation_date=operation_date,
+                                                                                operation_type_name=operation_type_name,
+                                                                                accruals_for_sale=accruals_for_sale,
+                                                                                sale_commission=sale_commission,
+                                                                                amount=amount, type=finance_type,
+                                                                                posting_number=posting_number,
+                                                                                services=services_array)
+
+            for item in items:
+                sku = item['sku']
+
+                order = Order.objects.filter(posting_number=posting_number).first()
+                if order:
+                    product_relation = ProductInOrder.objects.filter(sku=sku, order_id=order.pk).first()
+                    transaction_save.product.add(product_relation.pk)
 
 
 @app.task(bind=True)

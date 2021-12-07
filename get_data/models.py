@@ -8,6 +8,7 @@ from django.contrib.auth.models import (
 from django.contrib.auth.models import User
 from datetime import datetime, date
 from datetime import timedelta
+import requests
 
 
 class UserManager(BaseUserManager):
@@ -160,6 +161,18 @@ class User(AbstractBaseUser, PermissionsMixin):
         rate_data.append(tarif_action)
 
         return rate_data
+
+    def return_status(self):
+        api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list', headers={'Client-Id': str(self.ozon_id),
+                                                                                             'Api-Key': self.api_key,
+                                                                                             'Content-Type': 'application/json',
+                                                                                             'Host': 'api-seller.ozon.ru'})
+        if api_key_isset.status_code == 200:
+            status = 'valid'
+        else:
+            status = 'novalid'
+
+        return status
 
     class Meta:
         verbose_name = "пользователя"

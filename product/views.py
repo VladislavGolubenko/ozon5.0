@@ -11,13 +11,14 @@ from rest_framework.filters import OrderingFilter
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView
 
 from .serializers import *
 from rest_framework import permissions
 from .permissions import IsSubscription
 from .models import *
 from .tasks import get_analitic_data, update_analitics_data
+from django.db.models import Q, Count, Sum
 
 
 class ProductInOrderAction(ListAPIView):
@@ -73,17 +74,7 @@ class OzonMetricsAction(ListAPIView):
         return OzonMetrics.objects.filter(user_id=self.request.user.pk)
 
 
-# class ProductFilter(DjangoFilterBackend):
-#
-#     def filter_queryset(self, request, queryset, view):
-#         filter_class = self.get_filter_class(view, queryset)
-#
-#         if filter_class:
-#             return filter_class(request.query_params, queryset=queryset, request=request).qs
-#         return queryset
-
-
-class ProductListAction(ListAPIView):
+class ProductListAction(ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     pagination_class = LimitOffsetPagination
@@ -93,12 +84,8 @@ class ProductListAction(ListAPIView):
     def get_queryset(self):
         return Product.objects.filter(user_id=self.request.user.pk)
 
-    def post(self):
-        serializer = ProductSerializer(data=self.request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def perform_create(self, serializer):
+        return serializer.save()
 
 # class ProductListAction(APIView):
 #
@@ -329,19 +316,147 @@ class ObjectInTableView(APIView):
     def get(self, request, table):
 
         if table == 'product':
-            objects = Product.objects.all()
+            objects = Product.objects.filter(user_id=self.request.user.pk)
         elif table == 'ozon_transactions':
-            objects = OzonTransactions.objects.all()
+            objects = OzonTransactions.objects.filter(user_id=self.request.user.pk)
         elif table == 'order':
-            objects = Order.objects.all()
+            objects = Order.objects.filter(user_id=self.request.user.pk)
         elif table == 'ozon_metrics':
-            objects = OzonMetrics.objects.all()
+            objects = OzonMetrics.objects.filter(user_id=self.request.user.pk)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         summ_of_object = len(objects)
 
         return Response(summ_of_object, status=status.HTTP_200_OK)
+
+
+class CompanyDashbordView(APIView):
+    """
+    Вьющка аналитичской информации компании
+
+    для получения необходимо передать
+    date - Передается в количестве дней. Дата от кокого числа (и до сегоднешнего дня) будет передана аналитика.
+    sku - SKU товара в БД
+
+    Пример запроса:
+
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        sku = self.request.GET['sku']
+        date = self.request.GET['date']
+        date = int(date)
+        date_from = datetime.now() - timedelta(date)
+
+        if date is not None:
+            # Получаем продажи
+            queryset_of_sales = OzonTransactions.objects.filter(operation_date__lte=date_from, user_id=self.request.user.pk,
+                                                                operation_type="OperationAgentDeliveredToCustomer")
+            sales = 0
+
+            for sale in queryset_of_sales:
+                sales += sale.accruals_for_sale
+
+            # Возвраты
+            queryset_of_returns = OzonTransactions.objects.filter(operation_date__lte=date_from,
+                                                                  user_id=self.request.user.pk,
+                                                                  operation_type="ClientReturnAgentOperation")
+            returns = 0
+
+            for return_of_client in queryset_of_returns:
+                returns += return_of_client.accruals_for_sale
+
+            # Компенсации и другое
+            queryset_of_compensation = OzonTransactions.objects.filter(Q(operation_type="OperationCorrectionSeller") |
+                                                                       Q(operation_type="OperationLackWriteOff") |
+                                                                       Q(operation_type="OperationClaim") |
+                                                                       Q(operation_type="OperationSetOff") |
+                                                                       Q(operation_type="MarketplaceSellerCompensationOperation") |
+                                                                       Q(operation_type="OperationDefectiveWriteOff") |
+                                                                       Q(operation_type="MarketplaceSellerShippingCompensationReturnOperation") |
+                                                                       Q(operation_type="MarketplaceSellerReexposureDeliveryReturnOperation"),
+                                                                       operation_date__lte=date_from,
+                                                                       user_id=self.request.user.pk, )
+            compensations = 0
+
+            for compensation in queryset_of_compensation:
+                compensations += compensation.accruals_for_sale
+
+            proceeds = compensations + returns + sales  # Выручка
+            print("compensations", compensations)  # Компенсации и другое
+            print("returns", returns)  # Возвраты
+            print("sales", sales)  # Продажи
+
+            if sku is not None:
+
+                """ 
+                    тут нужно продумать логику и как оно должно отображаться, возможно просто убрать sku из запроса и 
+                    оставить только пользователя, а возможно перебрать все sku которые есть у пользователя 
+                """
+
+                # Колличество товаров доставленных пользователю (из транзакций по sku)
+                delivered_to_customer = OzonTransactions.objects.filter(product__sku=sku, operation_date__lte=date_from,
+                                                                        user_id=self.request.user.pk,
+                                                                        operation_type="OperationAgentDeliveredToCustomer").aggregate(Count('id'))
+
+                # Колличество товаров которые вернули (из транзакций по sku)
+                return_operation = OzonTransactions.objects.filter(product__sku=sku, operation_date__lte=date_from,
+                                                                   user_id=self.request.user.pk,
+                                                                   operation_type="ClientReturnAgentOperation").aggregate(Count('id'))
+
+                real_summ_of_sale_product = delivered_to_customer['id__count'] - return_operation['id__count']
+                product = Product.objects.filter(user_id=self.request.user.pk, sku=sku).first()
+
+                unit_price = real_summ_of_sale_product * product.unit_price  # Себестоимость
+                logistics = real_summ_of_sale_product * product.logistics_price  # Логистика
+                additional_price = real_summ_of_sale_product * product.additional_price  # Добавленная стоимость
+
+                '''
+                    Дальше вроде все нормально
+                '''
+
+                services_query = OzonTransactions.objects.filter(Q(operation_type="MarketplaceSaleReviewsOperation") |
+                                                                 Q(operation_type="OperationMarketplaceCrossDockServiceWriteOff") |
+                                                                 Q(operation_type="OperationMarketplaceServiceStorage"),
+                                                                 operation_date__lte=date_from,
+                                                                 user_id=self.request.user.pk).aggregate(Sum('amount'))
+                services = services_query['amount__sum']  # Услуги
+
+                comissions_by_sales_query = OzonTransactions.objects.filter(operation_date__lte=date_from, user_id=self.request.user.pk).aggregate(Sum('sale_commission'))
+                comissions_by_sales = comissions_by_sales_query['sale_commission__summ']  # Комиссия за продажу
+
+                """
+                    Тут вопрос. Я суммирую amount (как я понял это цена услуги), а в документации написано что сумировать нужно price
+                """
+                assembly_query = OzonTransactions.objects.filter(Q(operation_type_name="MarketplaceServiceItemFulfillment") |
+                                                                 Q(operation_type_name="MarketplaceServiceItemDropoffFf") |
+                                                                 Q(operation_type_name="MarketplaceServiceItemDropoffPvz") |
+                                                                 Q(operation_type_name="MarketplaceServiceItemDropoffSc"),
+                                                                 operation_date__lte=date_from, user_id=self.request.user.pk).aggregate(Sum('amount'))
+                assembly = assembly_query['amount__summ']  # Сборка заказа
+
+                highway_query = OzonTransactions.objects.filter(Q(operation_type_name="MarketplaceServiceItemDirectFlowTrans") |
+                                                                Q(operation_type_name="MarketplaceServiceItemReturnFlowTrans"),
+                                                                operation_date__lte=date_from, user_id=self.request.user.pk).aggregate(Sum('amount'))
+                highway = highway_query['amount__summ']  # Магистраль
+
+                last_mile_query = OzonTransactions.objects.filter(operation_type_name="MarketplaceServiceItemDelivToCustomer",
+                                                                  operation_date__lte=date_from, user_id=self.request.user.pk).aggregate(Sum('amount'))  # Последняя миля
+                last_mile = last_mile_query['amount__summ']  # Последняя миля
+
+                refunds_cancellations_query = OzonTransactions.objects.filter(Q(operation_type_name="MarketplaceServiceItemReturnAfterDelivToCustomer") |
+                                                                Q(operation_type_name="MarketplaceServiceItemReturnNotDelivToCustomer") |
+                                                                Q(operation_type_name="MarketplaceServiceItemReturnPartGoodsCustomer"),
+                                                                operation_date__lte=date_from, user_id=self.request.user.pk).aggregate(Sum('amount'))
+                refunds_cancellations = refunds_cancellations_query['amount__summ'] # Плата за возвраты и отмены
+
+                comissions = comissions_by_sales + assembly + highway + last_mile + refunds_cancellations # Комиссия
+                # cost = unit_price + logistics + additional_price  # Стоимость товара
+
+        return Response("hui", status=status.HTTP_200_OK)
 
 
 # class DashbordView(ListAPIView):

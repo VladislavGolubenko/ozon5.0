@@ -46,7 +46,7 @@ class OzonTransactionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = OzonTransactions
         fields = ('id', 'user_id', 'operation_id', 'operation_type', 'operation_date', 'operation_type_name',
-                  'accruals_for_sale', 'sale_commission', 'amount', 'type', 'posting_number', 'items', 'services')
+                  'accruals_for_sale', 'sale_commission', 'amount', 'type', 'posting_number', 'services')
 
 
 class OrderSerializer(serializers.ModelSerializer):
