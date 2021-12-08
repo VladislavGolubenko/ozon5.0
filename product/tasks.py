@@ -10,10 +10,10 @@ import requests
 
 @app.task(bind=True)
 def get_product(*args, **kwargs):
-    email = kwargs.get('email')
+    user_id = kwargs.get('user_id')
 
     from product.models import Product
-    user_data = User.objects.get(email=email)
+    user_data = User.objects.get(id=user_id)
 
     ozon_ovner = str(user_data.ozon_id)
     request_post = requests.post('https://api-seller.ozon.ru/v1/product/list',
@@ -77,10 +77,10 @@ def get_product(*args, **kwargs):
 
 @app.task(bind=True)
 def get_order(*args, **kwargs):
-    email = kwargs.get('email')
+    user_id = kwargs.get('user_id')
     from product.models import Order, ProductInOrder, OzonTransactions, Product
 
-    user_data = User.objects.get(email=email)
+    user_data = User.objects.get(id=user_id)
     ozon_ovner = str(user_data.ozon_id)
 
     year = datetime.now().year
@@ -192,10 +192,10 @@ def get_order(*args, **kwargs):
 @app.task(bind=True)
 def get_ozon_transaction(*args, **kwargs):
 
-    email = kwargs.get('email')
+    user_id = kwargs.get('user_id')
     from product.models import OzonTransactions, Order, ProductInOrder
 
-    user_data = User.objects.get(email=email)
+    user_data = User.objects.get(id=user_id)
     ozon_ovner = str(user_data.ozon_id)
 
     year = datetime.now().year
@@ -593,10 +593,10 @@ def found_new_ozon_transaction(*args, **kwargs):
 
 @app.task(bind=True)
 def get_analitic_data(*args, **kwargs):
-    email = kwargs.get('email')
+    user_id = kwargs.get('user_id')
 
     from product.models import OzonMetrics
-    user_data = User.objects.get(email=email)
+    user_data = User.objects.get(id=user_id)
     ozon_ovner = str(user_data.ozon_id)
 
     year = datetime.now().year
@@ -711,11 +711,11 @@ def get_analitic_data(*args, **kwargs):
 @app.task(bind=True)
 def update_analitics_data(*args, **kwargs):
 
-    email = kwargs.get('email')
+    user_id = kwargs.get('user_id')
     date = kwargs.get('today')
 
     from product.models import OzonMetrics
-    user_data = User.objects.get(email=email)
+    user_data = User.objects.get(id=user_id)
     ozon_ovner = str(user_data.ozon_id)
 
     year = datetime.now().year

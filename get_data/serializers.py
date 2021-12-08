@@ -29,6 +29,9 @@ class UserSerializer(serializers.ModelSerializer):
         new_password
     """
 
+    password = serializers.CharField(required=False)
+    email = serializers.EmailField(required=False)
+
     def create(self, validated_data):
         user = User(**validated_data)
         password = validated_data.get("password", None)
@@ -37,31 +40,32 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
     def update(self, instance, validated_data):
-
+        user_id = self.context['request'].user
+        print(user_id.id)
+        print(user_id.password)
         if validated_data.get("api_key") is not None:
 
             ozon_id = str(validated_data['ozon_id'])
             api_key = validated_data['api_key']
-            email = str(validated_data.get('email'))
 
             api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list',  headers={'Client-Id': ozon_id,
                                 'Api-Key': api_key, 'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
 
-            user = User.objects.get(email=validated_data.get("email"))
+            user = User.objects.get(id=user_id.id)
 
-            if api_key_isset.status_code == 200 and user.password == instance.password:
+            if api_key_isset.status_code == 200:
 
                 for attr, value in validated_data.items():
                     setattr(instance, attr, value)
 
-                password = validated_data.get("password", None)
-                instance.set_password(password)
+                # password = validated_data.get("password", None)
+                # instance.set_password(password)
 
                 instance.save()
-                # get_product.delay(email=email)
-                # get_order.delay(email=email)
-                get_ozon_transaction.delay(email=email)
-                # get_analitic_data.delay(email=email)
+                get_product.delay(user_id=user_id.id)
+                get_order.delay(user_id=user_id.id)
+                get_ozon_transaction.delay(user_id=user_id.id)
+                get_analitic_data.delay(user_id=user_id.id)
                 return instance
             else:
                 raise ValidationError(
@@ -69,20 +73,16 @@ class UserSerializer(serializers.ModelSerializer):
                 )
 
         elif validated_data.get("new_password") is not None:
-            user = User.objects.get(email=validated_data.get("email"))
-            if user.password == instance.password:
-                for attr, value in validated_data.items():
-                    setattr(instance, attr, value)
+            user = User.objects.get(id=user_id.id)
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
 
-                password = validated_data.get("new_password", None)
-                instance.set_password(password)
+            password = validated_data.get("new_password", None)
+            instance.set_password(password)
 
-                instance.save()
-                return instance
-            else:
-                raise ValidationError(
-                    detail={"Invalid password, please enter correct password": "404"}
-                )
+            instance.save()
+            return instance
+
         else:
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)

@@ -53,7 +53,7 @@ class UserAdmin(admin.ModelAdmin):
 
         ('Дополнительные настройки', {
             'classes': ('collapse',),
-            'fields': ('is_superuser', 'role'),
+            'fields': ('is_superuser', 'role', 'password'),
         }),
     )
 
