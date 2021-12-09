@@ -30,7 +30,8 @@ class ProductInOrderManager(models.Manager):
     def create_product_in_order(self, preview, user_id, order_id, sku, name, quantity, offer_id, price, price_f,
                                 comission_amount, payout, return_after_deliv_to_customer,
                                 product_id, fulfillment, direct_flow_trans, return_flow_trans, deliv_to_customer,
-                                return_not_deliv_to_customer, return_part_goods_customer):
+                                return_not_deliv_to_customer, return_part_goods_customer, days_for_production,
+                                reorder_days_of_supply, unit_price, logistics_price, additional_price, summ_price):
 
         product_in_order = self.create(preview=preview,
                                        user_id=user_id, order_id=order_id, sku=sku, name=name, quantity=quantity,
@@ -40,7 +41,11 @@ class ProductInOrderManager(models.Manager):
                                        return_flow_trans=return_flow_trans, deliv_to_customer=deliv_to_customer,
                                        return_not_deliv_to_customer=return_not_deliv_to_customer, price_f=price_f,
                                        return_part_goods_customer=return_part_goods_customer,
-                                       return_after_deliv_to_customer=return_after_deliv_to_customer)
+                                       return_after_deliv_to_customer=return_after_deliv_to_customer,
+                                       days_for_production=days_for_production,
+                                       reorder_days_of_supply=reorder_days_of_supply, unit_price=unit_price,
+                                       logistics_price=logistics_price, additional_price=additional_price,
+                                       summ_price=summ_price)
         return product_in_order
 
 
@@ -252,6 +257,13 @@ class ProductInOrder(models.Model):
     return_not_deliv_to_customer = models.FloatField(verbose_name="Возврат товара от покупателя")
     return_part_goods_customer = models.FloatField(verbose_name="Возврат части заказа покупателю")
     return_after_deliv_to_customer = models.FloatField(verbose_name="Возврат доставленного товара")
+
+    days_for_production = models.IntegerField(blank=True, null=True, verbose_name='Времени необходимо для производства')
+    reorder_days_of_supply = models.IntegerField(blank=True, null=True, verbose_name='Глубина поставки')
+    unit_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена юнита')
+    logistics_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена логистики')
+    additional_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Дополнительные затраты')
+    summ_price = models.FloatField(blank=True, null=True, verbose_name='Итого')
 
     creating_date = models.DateField(auto_now_add=True)
 

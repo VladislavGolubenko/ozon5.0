@@ -41,8 +41,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         user_id = self.context['request'].user
-        print(user_id.id)
-        print(user_id.password)
+
         if validated_data.get("api_key") is not None:
 
             ozon_id = str(validated_data['ozon_id'])
@@ -73,7 +72,6 @@ class UserSerializer(serializers.ModelSerializer):
                 )
 
         elif validated_data.get("new_password") is not None:
-            user = User.objects.get(id=user_id.id)
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
 

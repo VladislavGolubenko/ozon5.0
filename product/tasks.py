@@ -174,6 +174,26 @@ def get_order(*args, **kwargs):
             else:
                 preview = None
 
+            """
+            Данные которые вводит пользователь каждому товару (глубина поставки, время на производство себестоимость и тд
+            """
+            product_data_query = Product.objects.filter(sku=sku).first()
+
+            if product_data_query is not None:
+                days_for_production = product_data_query.days_for_production
+                reorder_days_of_supply = product_data_query.reorder_days_of_supply
+                unit_price = product_data_query.unit_price
+                logistics_price = product_data_query.logistics_price
+                additional_price = product_data_query.additional_price
+                summ_price = unit_price + logistics_price + additional_price
+            else:
+                days_for_production = None
+                reorder_days_of_supply = None
+                unit_price = None
+                logistics_price = None
+                additional_price = None
+                summ_price = None
+
             ProductInOrder.objects.create_product_in_order(preview=preview,
                                                            user_id=user_data, sku=sku, name=name, order_id=order_save,
                                                            quantity=quantity, offer_id=offer_id, price=price,
@@ -185,7 +205,11 @@ def get_order(*args, **kwargs):
                                                            deliv_to_customer=deliv_to_customer,
                                                            return_not_deliv_to_customer=return_not_deliv_to_customer,
                                                            return_part_goods_customer=return_part_goods_customer,
-                                                           return_after_deliv_to_customer=return_after_deliv_to_customer)
+                                                           return_after_deliv_to_customer=return_after_deliv_to_customer,
+                                                           days_for_production=days_for_production,
+                                                           reorder_days_of_supply=reorder_days_of_supply,
+                                                           unit_price=unit_price, logistics_price=logistics_price,
+                                                           additional_price=additional_price, summ_price=summ_price)
             i += 1
 
 
@@ -394,27 +418,59 @@ def update_product_order(*args, **kwargs):
                 price_f = product_f['price']
 
                 item_services = product_f['item_services']
-                fulfllment = item_services['marketplace_service_item_fulfillment']
-                direct_fow_trans = item_services['marketplace_service_item_direct_flow_trans']
-                return_fow_trans = item_services['marketplace_service_item_return_flow_trans']
+                fulfillment = item_services['marketplace_service_item_fulfillment']
+                direct_flow_trans = item_services['marketplace_service_item_direct_flow_trans']
+                return_flow_trans = item_services['marketplace_service_item_return_flow_trans']
                 deliv_to_customer = item_services['marketplace_service_item_deliv_to_customer']
                 return_not_deliv_to_customer = item_services['marketplace_service_item_return_not_deliv_to_customer']
                 return_part_goods_customer = item_services['marketplace_service_item_return_part_goods_customer']
                 return_after_deliv_to_customer = item_services[
                     'marketplace_service_item_return_after_deliv_to_customer']
 
-                ProductInOrder.objects.create_product_in_order(user_id=data, sku=sku, name=name,
+                image_queryset = Product.objects.filter(sku=sku).first()
+
+                if image_queryset is not None:
+                    preview = image_queryset.preview
+                else:
+                    preview = None
+
+                """
+                Данные которые вводит пользователь каждому товару (глубина поставки, время на производство себестоимость и тд
+                """
+                product_data_query = Product.objects.filter(sku=sku).first()
+
+                if product_data_query is not None:
+                    days_for_production = product_data_query.days_for_production
+                    reorder_days_of_supply = product_data_query.reorder_days_of_supply
+                    unit_price = product_data_query.unit_price
+                    logistics_price = product_data_query.logistics_price
+                    additional_price = product_data_query.additional_price
+                    summ_price = unit_price + logistics_price + additional_price
+                else:
+                    days_for_production = None
+                    reorder_days_of_supply = None
+                    unit_price = None
+                    logistics_price = None
+                    additional_price = None
+                    summ_price = None
+
+                ProductInOrder.objects.create_product_in_order(preview=preview,
+                                                               user_id=user_data, sku=sku, name=name,
                                                                order_id=order_save,
                                                                quantity=quantity, offer_id=offer_id, price=price,
                                                                price_f=price_f, comission_amount=comission_amount,
                                                                payout=payout, product_id=product_id,
-                                                               fulﬁllment=fulfllment,
-                                                               direct_flow_trans=direct_fow_trans,
-                                                               return_flow_trans=return_fow_trans,
+                                                               fulﬁllment=fulfillment,
+                                                               direct_flow_trans=direct_flow_trans,
+                                                               return_flow_trans=return_flow_trans,
                                                                deliv_to_customer=deliv_to_customer,
                                                                return_not_deliv_to_customer=return_not_deliv_to_customer,
                                                                return_part_goods_customer=return_part_goods_customer,
-                                                               return_after_deliv_to_customer=return_after_deliv_to_customer)
+                                                               return_after_deliv_to_customer=return_after_deliv_to_customer,
+                                                               days_for_production=days_for_production,
+                                                               reorder_days_of_supply=reorder_days_of_supply,
+                                                               unit_price=unit_price, logistics_price=logistics_price,
+                                                               additional_price=additional_price, summ_price=summ_price)
                 i += 1
 
         # Товары
