@@ -215,19 +215,21 @@ class OrderDetailAction(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class WarehouseAccountView(ListAPIView):
+class WarehouseAccountView(APIView):
     """
         Складской учет
     """
 
     # permission_classes = [permissions.IsAuthenticated]
     permission_classes = [IsSubscription]
-    serializer_class = WarehouseAccountSerializer
 
-    def get_queryset(self, days):
+
+    def post(self, request, days):
+
+        serializer = WarehouseAccountSerializer
 
         # email = self.request.POST['json']
-        json_with_id = json.loads(self.request.body.decode("utf-8"))
+        json_with_id = json.loads(request.body.decode("utf-8"))
         id_of_user = json_with_id['id']
 
         date_sort = datetime.now() - timedelta(days=days)
@@ -331,7 +333,8 @@ class WarehouseAccountView(ListAPIView):
 
             datas.append(data)
             paginator = LimitOffsetPagination()
-            result_page = paginator.paginate_queryset(datas, self.request)
+            result_page = paginator.paginate_queryset(datas, request)
+
 
         return Response(data=result_page, status=status.HTTP_200_OK)
 
@@ -355,7 +358,7 @@ class ObjectInTableView(APIView):
         return Response(summ_of_object, status=status.HTTP_200_OK)
 
 
-class CompanyDashbordView(ListAPIView):
+class CompanyDashbordView(APIView):
 
     """
     Aналитичская информация компании
@@ -366,11 +369,9 @@ class CompanyDashbordView(ListAPIView):
     """
 
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = CompanyDashbordSerializer
+    serializers = CompanyDashbordSerializer
 
-    def get_queryset(self):
-
-
+    def get(self, request):
         date = self.request.GET['date']
         date = int(date)
         date_from = datetime.now() - timedelta(date)
@@ -538,6 +539,7 @@ class CompanyDashbordView(ListAPIView):
                 'goods_sold': goods_sold,  # Товаров продано
                 'goods_returned': goods_returned  # Товаров возвращенно
             }
+            serializer = CompanyDashbordSerializer
 
         return Response(data, status=status.HTTP_200_OK)
 
