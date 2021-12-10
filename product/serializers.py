@@ -79,8 +79,7 @@ class WarehouseAccountSerializer(serializers.Serializer):
         Пример POST запроса: http://.../api/products/warehouse_control/90/
 
         Обязательные параметры:
-
-            email
+            id пользователя (json формат в теле запроса)
 
 
         Поля которые можно получчить:
@@ -102,13 +101,6 @@ class WarehouseAccountSerializer(serializers.Serializer):
             reorder_sum -- 'Cумма перезаказа'
     """
 
-    # username = serializers.CharField(max_length=255, write_only=True, help_text="логин")
-    # password = serializers.CharField(max_length=128, write_only=True, help_text="пароль")
-    #
-    # # Ignore these fields if they are included in the request.
-    #
-    # token = serializers.CharField(max_length=255, read_only=True)
-
     preview = serializers.CharField(max_length=300, write_only=True, help_text="Превью")
     ozon_product_id = serializers.IntegerField(write_only=True, help_text="ID продукта на озоне")
     sku = serializers.CharField(max_length=100, write_only=True, help_text="СКУ")
@@ -124,4 +116,67 @@ class WarehouseAccountSerializer(serializers.Serializer):
     need_to_order = serializers.FloatField(help_text="Необходимо заказать", write_only=True)
     stocks_cost_price = serializers.FloatField(help_text="Себестоимость остатков", write_only=True)
     reorder_sum = serializers.FloatField(help_text="Cумма перезаказа", write_only=True)
+
+
+class CompanyDashbordSerializer(serializers.Serializer):
+    """
+            Сериализатор получения аналитических данных компании.
+            Пример GET запроса: http://.../api/products/analitic_company/?date=700
+
+            Параметры для фильтрации:
+                date (через get параметр) - кол-во дней для установки периода
+
+
+            Поля которые можно получчить:
+
+                roi -- ROI
+                marginalit -- Маржинальность в %
+                sales -- Продажи
+                returns -- Возвраты
+                сompensations -- Компенсации и другое
+                proceeds -- Выручка
+                unit_price -- Себестоимость
+                logistics -- Логистика
+                additional_price -- Добавленная стоимость
+                services -- Услуги
+                comissions -- Комиссия
+                comissions_by_sales -- Комиссия за продажу
+                assembly -- Сборка заказа
+                highway -- Магистраль
+                last_mile -- Последняя миля
+                refunds_cancellations -- Плата за возвраты и отмены
+                advertising -- Реклама
+                profit -- Прибыль
+                cost -- Стоимость товара
+                cost_price -- Себестоимость товара
+                optional_costs -- Опциональные расходы
+                goods_sold -- Товаров продано
+                goods_returne -- Товаров возвращенно
+    """
+
+    roi = serializers.IntegerField(write_only=True, help_text="ROI")
+    marginalit = serializers.IntegerField(write_only=True, help_text="Маржинальность в %")
+    sales = serializers.IntegerField(write_only=True, help_text="Продажи")
+    returns = serializers.IntegerField(write_only=True, help_text="Возвраты")
+    сompensations = serializers.IntegerField(write_only=True, help_text="Компенсации и другое")
+    proceeds = serializers.IntegerField(write_only=True, help_text="Выручка")
+    unit_price = serializers.IntegerField(write_only=True, help_text="Себестоимость")
+    logistics= serializers.IntegerField(write_only=True, help_text="Логистика")
+    additional_price = serializers.IntegerField(write_only=True, help_text="Добавленная стоимость")
+    services = serializers.IntegerField(write_only=True, help_text="Услуги")
+    comissions = serializers.IntegerField(write_only=True, help_text="Комиссия")
+    comissions_by_sales = serializers.IntegerField(write_only=True, help_text="Комиссия за продажу")
+    assembly = serializers.IntegerField(write_only=True, help_text="Сборка заказа")
+    highway = serializers.IntegerField(write_only=True, help_text="Магистраль")
+    last_mile = serializers.IntegerField(write_only=True, help_text="Последняя миля")
+    refunds_cancellations = serializers.IntegerField(write_only=True, help_text="Плата за возвраты и отмены")
+    advertising = serializers.IntegerField(write_only=True, help_text="Реклама")
+    profit = serializers.IntegerField(write_only=True, help_text="Прибыль")
+    cost = serializers.IntegerField(write_only=True, help_text="Стоимость товара")
+    cost_price = serializers.IntegerField(write_only=True, help_text="Себестоимость товара")
+    optional_costs = serializers.IntegerField(write_only=True, help_text="Опциональные расходы")
+    goods_sold = serializers.IntegerField(write_only=True, help_text="Товаров продано")
+    goods_returne= serializers.IntegerField(write_only=True, help_text="Товаров возвращенно")
+
+
 

@@ -332,13 +332,12 @@ class ObjectInTableView(APIView):
 
 
 class CompanyDashbordView(APIView):
+
     """
     Вьющка аналитичской информации компании
 
     для получения необходимо передать
     date - Передается в количестве дней. Дата от кокого числа (и до сегоднешнего дня) будет передана аналитика.
-
-    Пример запроса:
 
     """
 
@@ -473,7 +472,8 @@ class CompanyDashbordView(APIView):
             cost = unit_price + logistics + additional_price + services + comissions + advertising  # Стоимость товара
 
             cost_price = unit_price + logistics + additional_price  # Себестоимость товара
-            optional_costs = services + comissions + advertising  # Опциональные расходы
+            optional_costs = services + comissions + advertising  # Операционные расходы
+            profit = proceeds - cost_price - optional_costs  # Прибыль
 
             goods_sold_query = OzonTransactions.objects.filter(operation_type_name="OperationAgentDeliveredToCustomer",
                                                                operation_date__gte=date_from, user_id=self.request.user.pk).aggregate(Count('product__id'))
@@ -483,7 +483,12 @@ class CompanyDashbordView(APIView):
                                                                    operation_date__gte=date_from, user_id=self.request.user.pk).aggregate(Count('product__id'))
             goods_returned = goods_returned_query['product__id__count']  # Товаров возвращенно
 
+            marginality = profit / proceeds * 100 if proceeds is not 0 else None  # Маржинальность в %
+            roi = profit / unit_price * 100 if unit_price is not 0 else None  # ROI
+
             data = {
+                'roi': roi,  # ROI
+                'marginality': marginality, # Маржинальность в %
                 'sales': sales,  # Продажи
                 'returns': returns,  # Возвраты
                 'compensations': compensations,  # Компенсации и другое
@@ -499,6 +504,7 @@ class CompanyDashbordView(APIView):
                 'last_mile': last_mile,  # Последняя миля
                 'refunds_cancellations': refunds_cancellations,  # Плата за возвраты и отмены
                 'advertising': advertising,  # Реклама
+                'profit': profit,  # Прибыль
                 'cost': cost,  # Стоимость товара
                 'cost_price': cost_price,  # Себестоимость товара
                 'optional_costs': optional_costs,  # Опциональные расходы
