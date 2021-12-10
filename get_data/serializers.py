@@ -11,6 +11,8 @@ import openpyxl
 class UserSerializer(serializers.ModelSerializer):
 
     """
+    Пользователь
+
     Сериализатор для создания пользователя, изменения пароля или данных для подключения к ozon и в целом пользователя.
 
     Поля которые необходимо указывать при сохранении данных ozon
@@ -90,6 +92,9 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class TransactionSerializer(serializers.ModelSerializer):
+    """
+        Транзакции внутри приложения
+    """
 
     def create(self, validated_data):
 
@@ -171,6 +176,9 @@ class TransactionSerializer(serializers.ModelSerializer):
 
 
 class RateSerializer(serializers.ModelSerializer):
+    """
+        Тариф
+    """
 
     class Meta:
         model = Rate

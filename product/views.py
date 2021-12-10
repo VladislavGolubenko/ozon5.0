@@ -22,6 +22,9 @@ from django.db.models import Q, Count, Sum
 
 
 class ProductInOrderAction(ListAPIView):
+    """
+        Заказанные товары
+    """
 
     queryset = ProductInOrder.objects.all()
     serializer_class = ProductInOrderSerializer
@@ -34,6 +37,9 @@ class ProductInOrderAction(ListAPIView):
 
 
 class OzonTransactionsAction(ListAPIView):
+    """
+        Список транзакций оzon
+    """
 
     queryset = OzonTransactions.objects.all()
     serializer_class = OzonTransactionsSerializer
@@ -46,6 +52,9 @@ class OzonTransactionsAction(ListAPIView):
 
 
 class OzonMetricsAction(ListAPIView):
+    """
+        Список метрик (аналитической информации) ozon
+    """
 
     queryset = OzonMetrics.objects.all()
     serializer_class = OzonMetricsSerializer
@@ -75,6 +84,9 @@ class OzonMetricsAction(ListAPIView):
 
 
 class ProductListAction(ListCreateAPIView):
+    """
+        Список товаров
+    """
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     pagination_class = LimitOffsetPagination
@@ -117,6 +129,9 @@ class ProductListAction(ListCreateAPIView):
 
 
 class ProductDetailAction(APIView):
+    """
+        Конкретный товар
+    """
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self, pk):
@@ -145,6 +160,10 @@ class ProductDetailAction(APIView):
 
 
 class OrderListAction(ListAPIView):
+    """
+        Вывод списка заказов
+    """
+
     permission_classes = [permissions.IsAuthenticated]
 
     serializer_class = OrderSerializer
@@ -197,8 +216,13 @@ class OrderDetailAction(APIView):
 
 
 class WarehouseAccountView(APIView):
+    """
+        Складской учет
+    """
+
     # permission_classes = [permissions.IsAuthenticated]
     permission_classes = [IsSubscription]
+    serializer_class = WarehouseAccountSerializer
 
     def post(self, request, days):
 
@@ -334,7 +358,7 @@ class ObjectInTableView(APIView):
 class CompanyDashbordView(APIView):
 
     """
-    Вьющка аналитичской информации компании
+    Aналитичская информация компании
 
     для получения необходимо передать
     date - Передается в количестве дней. Дата от кокого числа (и до сегоднешнего дня) будет передана аналитика.
@@ -342,6 +366,7 @@ class CompanyDashbordView(APIView):
     """
 
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = CompanyDashbordSerializer
 
     def get(self, request):
         date = self.request.GET['date']
