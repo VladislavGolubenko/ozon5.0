@@ -215,7 +215,7 @@ class OrderDetailAction(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class WarehouseAccountView(APIView):
+class WarehouseAccountView(ListAPIView):
     """
         Складской учет
     """
@@ -224,10 +224,10 @@ class WarehouseAccountView(APIView):
     permission_classes = [IsSubscription]
     serializer_class = WarehouseAccountSerializer
 
-    def post(self, request, days):
+    def get_queryset(self, days):
 
         # email = self.request.POST['json']
-        json_with_id = json.loads(request.body.decode("utf-8"))
+        json_with_id = json.loads(self.request.body.decode("utf-8"))
         id_of_user = json_with_id['id']
 
         date_sort = datetime.now() - timedelta(days=days)
@@ -331,7 +331,7 @@ class WarehouseAccountView(APIView):
 
             datas.append(data)
             paginator = LimitOffsetPagination()
-            result_page = paginator.paginate_queryset(datas, request)
+            result_page = paginator.paginate_queryset(datas, self.request)
 
         return Response(data=result_page, status=status.HTTP_200_OK)
 
@@ -355,7 +355,7 @@ class ObjectInTableView(APIView):
         return Response(summ_of_object, status=status.HTTP_200_OK)
 
 
-class CompanyDashbordView(APIView):
+class CompanyDashbordView(ListAPIView):
 
     """
     Aналитичская информация компании
@@ -368,7 +368,9 @@ class CompanyDashbordView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = CompanyDashbordSerializer
 
-    def get(self, request):
+    def get_queryset(self):
+
+
         date = self.request.GET['date']
         date = int(date)
         date_from = datetime.now() - timedelta(date)
