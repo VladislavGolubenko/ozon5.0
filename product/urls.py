@@ -11,5 +11,6 @@ urlpatterns = [
     path('ozon_transaction/', views.OzonTransactionsAction.as_view()),
     path('metrics/', views.OzonMetricsAction.as_view()),
     path('object_in_table/<slug:table>/', views.ObjectInTableView().as_view()),
-    path('analitic_company/', views.CompanyDashbordView().as_view())
+    path('analitic_company/', views.CompanyDashbordView().as_view()),
+    path('analitic_product/', views.ProductDashbordView().as_view()),
 ]

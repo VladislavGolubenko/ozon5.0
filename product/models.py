@@ -107,9 +107,6 @@ class OzonTransactions(models.Model):
 
     product = models.ManyToManyField("ProductInOrder", related_name="product_in_transaction", blank=True, null=True)
 
-
-
-
     def __str__(self):
         return str(self.operation_id)
 

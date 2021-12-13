@@ -228,7 +228,6 @@ class WarehouseAccountView(APIView):
 
         serializer = WarehouseAccountSerializer
 
-        # email = self.request.POST['json']
         json_with_id = json.loads(request.body.decode("utf-8"))
         id_of_user = json_with_id['id']
 
@@ -425,16 +424,16 @@ class CompanyDashbordView(APIView):
 
             for sku in sku_list:
 
-                print(sku)
-
                 # Колличество товаров доставленных пользователю (из транзакций по sku)
-                delivered_to_customer = OzonTransactions.objects.filter(product__sku=sku['sku'], operation_date__gte=date_from,
+                delivered_to_customer = OzonTransactions.objects.filter(product__sku=sku['sku'],
+                                                                        operation_date__gte=date_from,
                                                                         user_id=self.request.user.pk,
                                                                         operation_type="OperationAgentDeliveredToCustomer").aggregate(Count('id'))
 
 
                 # Колличество товаров которые вернули (из транзакций по sku)
-                return_operation = OzonTransactions.objects.filter(product__sku=sku['sku'], operation_date__gte=date_from,
+                return_operation = OzonTransactions.objects.filter(product__sku=sku['sku'],
+                                                                   operation_date__gte=date_from,
                                                                    user_id=self.request.user.pk,
                                                                    operation_type="ClientReturnAgentOperation").aggregate(Count('id'))
 
@@ -462,7 +461,8 @@ class CompanyDashbordView(APIView):
 
             services = services_query['amount__sum'] if services_query['amount__sum'] is not None else 0  # Услуги
 
-            comissions_by_sales_query = OzonTransactions.objects.filter(operation_date__gte=date_from, user_id=self.request.user.pk).aggregate(Sum('sale_commission'))
+            comissions_by_sales_query = OzonTransactions.objects.filter(operation_date__gte=date_from,
+                                                                        user_id=self.request.user.pk).aggregate(Sum('sale_commission'))
 
             comissions_by_sales = comissions_by_sales_query['sale_commission__sum'] if comissions_by_sales_query['sale_commission__sum'] is not None else 0  # Комиссия за продажу
 
@@ -473,8 +473,9 @@ class CompanyDashbordView(APIView):
                                                              Q(operation_type_name="MarketplaceServiceItemDropoffFf") |
                                                              Q(operation_type_name="MarketplaceServiceItemDropoffPvz") |
                                                              Q(operation_type_name="MarketplaceServiceItemDropoffSc"),
-                                                             operation_date__gte=date_from, user_id=self.request.user.pk).aggregate(Sum('amount'))
-            print('assembly_query',assembly_query)
+                                                             operation_date__gte=date_from,
+                                                             user_id=self.request.user.pk).aggregate(Sum('amount'))
+            print('assembly_query', assembly_query)
             assembly = assembly_query['amount__sum'] if assembly_query['amount__sum'] is not None else 0  # Сборка заказа
 
             highway_query = OzonTransactions.objects.filter(Q(operation_type_name="MarketplaceServiceItemDirectFlowTrans") |
@@ -484,18 +485,22 @@ class CompanyDashbordView(APIView):
 
             last_mile_query = OzonTransactions.objects.filter(operation_type_name="MarketplaceServiceItemDelivToCustomer",
                                                               operation_date__gte=date_from, user_id=self.request.user.pk).aggregate(Sum('amount'))
+
             last_mile = last_mile_query['amount__sum'] if last_mile_query['amount__sum'] is not None else 0  # Последняя миля
 
             refunds_cancellations_query = OzonTransactions.objects.filter(Q(operation_type_name="MarketplaceServiceItemReturnAfterDelivToCustomer") |
                                                             Q(operation_type_name="MarketplaceServiceItemReturnNotDelivToCustomer") |
                                                             Q(operation_type_name="MarketplaceServiceItemReturnPartGoodsCustomer"),
                                                             operation_date__gte=date_from, user_id=self.request.user.pk).aggregate(Sum('amount'))
+
             refunds_cancellations = refunds_cancellations_query['amount__sum'] if refunds_cancellations_query['amount__sum'] is not None else 0  # Плата за возвраты и отмены
 
             comissions = comissions_by_sales + assembly + highway + last_mile + refunds_cancellations  # Комиссия
 
             advertising_query = OzonTransactions.objects.filter(operation_type_name="MarketplaceMarketingActionCostOperation",
-                                                                operation_date__gte=date_from, user_id=self.request.user.pk).aggregate(Sum('amount'))
+                                                                operation_date__gte=date_from,
+                                                                user_id=self.request.user.pk).aggregate(Sum('amount'))
+
             advertising = advertising_query['amount__sum'] if advertising_query['amount__sum'] is not None else 0  # Реклама
             cost = unit_price + logistics + additional_price + services + comissions + advertising  # Стоимость товара
 
@@ -504,11 +509,14 @@ class CompanyDashbordView(APIView):
             profit = proceeds - cost_price - optional_costs  # Прибыль
 
             goods_sold_query = OzonTransactions.objects.filter(operation_type_name="OperationAgentDeliveredToCustomer",
-                                                               operation_date__gte=date_from, user_id=self.request.user.pk).aggregate(Count('product__id'))
+                                                               operation_date__gte=date_from,
+                                                               user_id=self.request.user.pk).aggregate(Count('product__id'))
+
             goods_sold = goods_sold_query['product__id__count']  # Товаров продано
 
             goods_returned_query = OzonTransactions.objects.filter(operation_type_name="ClientReturnAgentOperation",
-                                                                   operation_date__gte=date_from, user_id=self.request.user.pk).aggregate(Count('product__id'))
+                                                                   operation_date__gte=date_from,
+                                                                   user_id=self.request.user.pk).aggregate(Count('product__id'))
             goods_returned = goods_returned_query['product__id__count']  # Товаров возвращенно
 
             marginality = profit / proceeds * 100 if proceeds is not 0 else None  # Маржинальность в %
@@ -539,31 +547,116 @@ class CompanyDashbordView(APIView):
                 'goods_sold': goods_sold,  # Товаров продано
                 'goods_returned': goods_returned  # Товаров возвращенно
             }
-            serializer = CompanyDashbordSerializer
 
         return Response(data, status=status.HTTP_200_OK)
 
 
-# class DashbordView(ListAPIView):
-#     permission_classes = [permissions.IsAuthenticated]
-#
-#     queryset = OzonTransactions.objects.all()
-#     serializer_class = OzonTransactionsSerializer
-#     pagination_class = LimitOffsetPagination
-#     filter_backends = (filters.DjangoFilterBackend, OrderingFilter,)
-#     ordering_fields = '__all__'
-#
-#     def get_queryset(self):
-#         date = self.request.GET['date']
-#         sku = self.request.GET['sku']
-#         if date is None:
-#             raise ValueError("The given date must be set")
-#         else:
-#             #Таблица "Дашборт"
-#             filter_date = datetime.now() - timedelta(date)
-#
-#             delivered_to_customer_query = OzonTransactions.objects.filter(operation_date__lte=filter_date, operation_type="OperationAgentDeliveredToCustomer", sku=sku)
-#             for delivered_to_customer in delivered_to_customer_query:
-#                 sales = delivered_to_customer['price']  # Продажи
+class ProductDashbordView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = OzonTransactionsSerializer
 
+    def get(self, request):
+        date = request.GET['date']
+        date = int(date)
 
+        if date is None:
+            raise ValueError("The given date must be set")
+        else:
+            #Таблица "Дашборт"
+            date_from = datetime.now() - timedelta(date)
+
+            products_sku = ProductInOrder.objects.filter(user_id=self.request.user.pk).values('sku')
+            sku_list = []
+
+            for sku in products_sku:
+                if sku not in sku_list:
+                    sku_list.append(sku['sku'])
+
+            sales = 0
+            refunds = 0
+
+            data_list = []
+
+            for sku in sku_list:
+
+                delivered_to_customer_query = OzonTransactions.objects.filter(operation_date__gte=date_from,
+                                                                              operation_type="OperationAgentDeliveredToCustomer",
+                                                                              product__sku=sku).values('product__price')
+                for delivered_to_customer in delivered_to_customer_query:
+                    sales += delivered_to_customer['product__price']  # Продажи
+
+                client_return_query = OzonTransactions.objects.filter(operation_date__gte=date_from,
+                                                                      operation_type="ClientReturnAgentOperation",
+                                                                      product__sku=sku).values('product__price')
+                for client_return in client_return_query:
+                    refunds += client_return['product__price']  # Возвраты
+
+                revenue = sales + refunds  # Выручка
+
+                delivered_numbers_of_product_query = OzonTransactions.objects.filter(operation_date__gte=date_from,
+                                                                                     operation_type="OperationAgentDeliveredToCustomer",
+                                                                                     product__sku=sku).aggregate(Count('product__id'))
+                delivered_numbers_of_product = delivered_numbers_of_product_query['product__id__count']
+
+                return_numbers_of_product_query = OzonTransactions.objects.filter(operation_date__gte=date_from,
+                                                                                  operation_type="ClientReturnAgentOperation",
+                                                                                  product__sku=sku).aggregate(Count('product__id'))
+                return_numbers_of_product = return_numbers_of_product_query['product__id__count']
+
+                real_number_of_product = delivered_numbers_of_product - return_numbers_of_product
+
+                """
+                !!!!!!!!!!!!!!!!!!!!!!!
+                тут возможно нужно будет подвязать к конкретной транзакции, тк в архиве их много
+                """
+                product_query = ProductInOrder.objects.filter(user_id=self.request.user.pk, sku=sku).first()
+
+                if product_query.unit_price and product_query.additional_price and product_query.logistics_price is not None:
+                    cost_price = real_number_of_product * product_query.unit_price  # Себестоимость
+                    logistic_price = real_number_of_product * product_query.logistics_price  # Логистика
+                    dop_price = real_number_of_product * product_query.additional_price  # Доп расходы
+                    comissions = 0  # Комисии (пока в доработке, поэтому ноль)
+                    price = cost_price + logistic_price + dop_price + comissions  # Стоимость
+                else:
+                    cost_price = 0  # Себестоимость
+                    logistic_price = 0  # Логистика
+                    dop_price = 0  # Доп расходы
+                    comissions = 0  # Комисии (пока в доработке, поэтому ноль)
+                    price = cost_price + logistic_price + dop_price + comissions  # Стоимость
+                    # return Response(sku, status=status.HTTP_404_NOT_FOUND)
+
+                # Себестоимость товаров (НА УТОЧНЕНИИ)
+                # Операционные расходы (НА УТОЧНЕНИИ)
+                # Прибыль (НА УТОЧНЕНИИ)
+                # Маржинальность (НЕ МОГУ ПОСЧИТАТЬ ИЗ-ЗА ПОЛЕЙ НА УТОЧНЕНИИ)
+                # ROI (НЕ МОГУ ПОСЧИТАТЬ ИЗ-ЗА ПОЛЕЙ НА УТОЧНЕНИИ)
+
+                goods_sold_query = OzonTransactions.objects.filter(operation_type_name="OperationAgentDeliveredToCustomer",
+                                                                   operation_date__gte=date_from, product__sku=sku,
+                                                                   user_id=self.request.user.pk)
+                print('-----------------------', goods_sold_query)
+
+                goods_sold = goods_sold_query['product__id__count']  # Товаров продано
+
+                goods_returned_query = OzonTransactions.objects.filter(operation_type_name="ClientReturnAgentOperation",
+                                                                       operation_date__gte=date_from, product__sku=sku,
+                                                                       user_id=self.request.user.pk).aggregate(Count('product__id'))
+
+                goods_returned = goods_returned_query['product__id__count']  # Товаров возвращенно
+
+                data = {
+                    'sales': sales,  # Продажи
+                    'refunds': refunds,  # Возвраты
+                    'revenue': revenue,  # Выручка
+                    'cost_price': cost_price,  # Себестоимость
+                    'logistic_price': logistic_price, # Логистика
+                    'dop_price': dop_price,  # Доп расходы
+                    'comissions': comissions,  # Комисии (пока в доработке, поэтому ноль)
+                    'price': price,  # Стоимость
+                    'goods_sold': goods_sold,  # Товаров продано
+                    'goods_returned': goods_returned,  # Товаров возвращенно
+                }
+
+                data_list.append(data)
+
+            return Response(data_list, status=status.HTTP_200_OK)
