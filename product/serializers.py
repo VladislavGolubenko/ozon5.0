@@ -12,11 +12,8 @@ from .models import (
 class ProductSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
-        print(type(validated_data))
-
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-            print(attr, value)
 
         summ_price = validated_data['unit_price'] + validated_data['logistics_price'] + validated_data['additional_price']
         setattr(instance, 'summ_price', summ_price)
@@ -32,6 +29,8 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class ProductInOrderSerializer(serializers.ModelSerializer):
+
+
 
     class Meta:
         model = ProductInOrder

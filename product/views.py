@@ -1,9 +1,5 @@
 import json
-import requests
 from django.http import HttpResponse, Http404
-from datetime import datetime, date
-from datetime import timedelta
-from django_filters import rest_framework as filters
 from rest_framework.pagination import LimitOffsetPagination
 
 from rest_framework.filters import OrderingFilter
@@ -11,7 +7,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView, ListCreateAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 
 from .serializers import *
 from rest_framework import permissions
@@ -21,7 +17,7 @@ from .tasks import get_analitic_data, update_analitics_data
 from django.db.models import Q, Count, Sum
 
 
-class ProductInOrderAction(ListAPIView):
+class ProductInOrderAction(RetrieveUpdateDestroyAPIView):
     """
         Заказанные товары
     """
@@ -99,34 +95,6 @@ class ProductListAction(ListCreateAPIView):
     def perform_create(self, serializer):
         return serializer.save()
 
-# class ProductListAction(APIView):
-#
-#     ordering_fields = ['id', ]
-#     filter_fields = ('unit_price', )
-#
-#     def get(self, request):
-#         queryset = Product.objects.filter(user_id=request.user.pk)
-#
-#         filter = ProductFilter()
-#         filtered_queryset = filter.filter_queryset(request, queryset, self)
-#         paginator = LimitOffsetPagination()
-#
-#         if filtered_queryset.exists():
-#
-#             result_page = paginator.paginate_queryset(queryset, request)
-#             serializer = ProductSerializer(result_page, many=True)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         else:
-#             return Response([], status=status.HTTP_200_OK)
-#
-#
-#     def post(self, request):
-#         serializer = ProductSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class ProductDetailAction(APIView):
     """
@@ -140,7 +108,7 @@ class ProductDetailAction(APIView):
         except Product.DoesNotExist:
             raise Http404
 
-    def get(self, request, pk):
+    def get(self, pk):
         queryset = self.get_object(pk)
         serializer = ProductSerializer(queryset)
         return Response(serializer.data)
@@ -153,7 +121,7 @@ class ProductDetailAction(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk):
+    def delete(self, pk):
         queryset = self.get_object(pk)
         queryset.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -174,11 +142,6 @@ class OrderListAction(ListAPIView):
     def get_queryset(self):
         return Order.objects.filter(user_id=self.request.user.pk)
 
-        # queryset = Order.objects.filter(user_id=self.request.user.pk)
-        # # queryset = Order.objects.all()
-        # serializer = OrderSerializer(queryset, many=True)
-        # return Response(serializer.data)
-
     # def post(self, request, format=None):
     #     serializer = OrderSerializer(data=request.data)
     #     if serializer.is_valid():
@@ -196,7 +159,7 @@ class OrderDetailAction(APIView):
         except Order.DoesNotExist:
             raise Http404
 
-    def get(self, request, pk):
+    def get(self, pk):
         queryset = self.get_object(pk)
         serializer = OrderSerializer(queryset)
         return Response(serializer.data)
@@ -209,7 +172,7 @@ class OrderDetailAction(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk):
+    def delete(self, pk):
         queryset = self.get_object(pk)
         queryset.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -334,7 +297,6 @@ class WarehouseAccountView(APIView):
             paginator = LimitOffsetPagination()
             result_page = paginator.paginate_queryset(datas, request)
 
-
         return Response(data=result_page, status=status.HTTP_200_OK)
 
 
@@ -430,7 +392,6 @@ class CompanyDashbordView(APIView):
                                                                         user_id=self.request.user.pk,
                                                                         operation_type="OperationAgentDeliveredToCustomer").aggregate(Count('id'))
 
-
                 # Колличество товаров которые вернули (из транзакций по sku)
                 return_operation = OzonTransactions.objects.filter(product__sku=sku['sku'],
                                                                    operation_date__gte=date_from,
@@ -448,10 +409,7 @@ class CompanyDashbordView(APIView):
                     additional_price += real_summ_of_sale_product * product_query.additional_price  # Добавленная стоимость
 
                 else:
-                    unit_price += 0
-                    logistics += 0
-                    additional_price += 0
-                    # return Response(sku, status=status.HTTP_404_NOT_FOUND)
+                    return Response(sku, status=status.HTTP_404_NOT_FOUND)
 
             services_query = OzonTransactions.objects.filter(Q(operation_type="MarketplaceSaleReviewsOperation") |
                                                              Q(operation_type="OperationMarketplaceCrossDockServiceWriteOff") |
@@ -489,9 +447,9 @@ class CompanyDashbordView(APIView):
             last_mile = last_mile_query['amount__sum'] if last_mile_query['amount__sum'] is not None else 0  # Последняя миля
 
             refunds_cancellations_query = OzonTransactions.objects.filter(Q(operation_type_name="MarketplaceServiceItemReturnAfterDelivToCustomer") |
-                                                            Q(operation_type_name="MarketplaceServiceItemReturnNotDelivToCustomer") |
-                                                            Q(operation_type_name="MarketplaceServiceItemReturnPartGoodsCustomer"),
-                                                            operation_date__gte=date_from, user_id=self.request.user.pk).aggregate(Sum('amount'))
+                                                                          Q(operation_type_name="MarketplaceServiceItemReturnNotDelivToCustomer") |
+                                                                          Q(operation_type_name="MarketplaceServiceItemReturnPartGoodsCustomer"),
+                                                                          operation_date__gte=date_from, user_id=self.request.user.pk).aggregate(Sum('amount'))
 
             refunds_cancellations = refunds_cancellations_query['amount__sum'] if refunds_cancellations_query['amount__sum'] is not None else 0  # Плата за возвраты и отмены
 
@@ -508,19 +466,19 @@ class CompanyDashbordView(APIView):
             optional_costs = services + comissions + advertising  # Операционные расходы
             profit = proceeds - cost_price - optional_costs  # Прибыль
 
-            goods_sold_query = OzonTransactions.objects.filter(operation_type_name="OperationAgentDeliveredToCustomer",
+            goods_sold_query = OzonTransactions.objects.filter(operation_type="OperationAgentDeliveredToCustomer",
                                                                operation_date__gte=date_from,
                                                                user_id=self.request.user.pk).aggregate(Count('product__id'))
 
             goods_sold = goods_sold_query['product__id__count']  # Товаров продано
 
-            goods_returned_query = OzonTransactions.objects.filter(operation_type_name="ClientReturnAgentOperation",
+            goods_returned_query = OzonTransactions.objects.filter(operation_type="ClientReturnAgentOperation",
                                                                    operation_date__gte=date_from,
                                                                    user_id=self.request.user.pk).aggregate(Count('product__id'))
             goods_returned = goods_returned_query['product__id__count']  # Товаров возвращенно
 
-            marginality = profit / proceeds * 100 if proceeds is not 0 else None  # Маржинальность в %
-            roi = profit / unit_price * 100 if unit_price is not 0 else None  # ROI
+            marginality = profit / proceeds * 100 if proceeds != 0 else None  # Маржинальность в %
+            roi = profit / unit_price * 100 if unit_price != 0 else None  # ROI
 
             data = {
                 'roi': roi,  # ROI
@@ -548,7 +506,8 @@ class CompanyDashbordView(APIView):
                 'goods_returned': goods_returned  # Товаров возвращенно
             }
 
-        return Response(data, status=status.HTTP_200_OK)
+            return Response(data, status=status.HTTP_200_OK)
+        raise ValueError("The given date must be set")
 
 
 class ProductDashbordView(APIView):
@@ -569,12 +528,11 @@ class ProductDashbordView(APIView):
             sku_list = []
 
             for sku in products_sku:
-                if sku not in sku_list:
+                if sku['sku'] not in sku_list:
                     sku_list.append(sku['sku'])
 
             sales = 0
             refunds = 0
-
             data_list = []
 
             for sku in sku_list:
@@ -610,6 +568,9 @@ class ProductDashbordView(APIView):
                 тут возможно нужно будет подвязать к конкретной транзакции, тк в архиве их много
                 """
                 product_query = ProductInOrder.objects.filter(user_id=self.request.user.pk, sku=sku).first()
+                preview = product_query.preview  # Превью
+                name = product_query.name  # Название товара
+                sku = product_query.sku  # Артикул
 
                 if product_query.unit_price and product_query.additional_price and product_query.logistics_price is not None:
                     cost_price = real_number_of_product * product_query.unit_price  # Себестоимость
@@ -618,12 +579,7 @@ class ProductDashbordView(APIView):
                     comissions = 0  # Комисии (пока в доработке, поэтому ноль)
                     price = cost_price + logistic_price + dop_price + comissions  # Стоимость
                 else:
-                    cost_price = 0  # Себестоимость
-                    logistic_price = 0  # Логистика
-                    dop_price = 0  # Доп расходы
-                    comissions = 0  # Комисии (пока в доработке, поэтому ноль)
-                    price = cost_price + logistic_price + dop_price + comissions  # Стоимость
-                    # return Response(sku, status=status.HTTP_404_NOT_FOUND)
+                    return Response(sku, status=status.HTTP_404_NOT_FOUND)
 
                 # Себестоимость товаров (НА УТОЧНЕНИИ)
                 # Операционные расходы (НА УТОЧНЕНИИ)
@@ -631,32 +587,91 @@ class ProductDashbordView(APIView):
                 # Маржинальность (НЕ МОГУ ПОСЧИТАТЬ ИЗ-ЗА ПОЛЕЙ НА УТОЧНЕНИИ)
                 # ROI (НЕ МОГУ ПОСЧИТАТЬ ИЗ-ЗА ПОЛЕЙ НА УТОЧНЕНИИ)
 
-                goods_sold_query = OzonTransactions.objects.filter(operation_type_name="OperationAgentDeliveredToCustomer",
+                goods_sold_query = OzonTransactions.objects.filter(operation_type="OperationAgentDeliveredToCustomer",
                                                                    operation_date__gte=date_from, product__sku=sku,
-                                                                   user_id=self.request.user.pk)
-                print('-----------------------', goods_sold_query)
+                                                                   user_id=self.request.user.pk).aggregate(Count('product__id'))
 
-                goods_sold = goods_sold_query['product__id__count']  # Товаров продано
+                goods_sold = goods_sold_query['product__id__count'] if goods_sold_query['product__id__count'] is not None else None  # Товаров продано
 
-                goods_returned_query = OzonTransactions.objects.filter(operation_type_name="ClientReturnAgentOperation",
+                goods_returned_query = OzonTransactions.objects.filter(operation_type="ClientReturnAgentOperation",
                                                                        operation_date__gte=date_from, product__sku=sku,
                                                                        user_id=self.request.user.pk).aggregate(Count('product__id'))
 
-                goods_returned = goods_returned_query['product__id__count']  # Товаров возвращенно
+                goods_returned = goods_returned_query['product__id__count'] if goods_returned_query['product__id__count'] is not None else None  # Товаров возвращенно
+
+                returns_percent = goods_returned/goods_sold * 100 if goods_sold != 0 else 0  # Процентов возврата
 
                 data = {
                     'sales': sales,  # Продажи
                     'refunds': refunds,  # Возвраты
                     'revenue': revenue,  # Выручка
                     'cost_price': cost_price,  # Себестоимость
-                    'logistic_price': logistic_price, # Логистика
+                    'logistic_price': logistic_price,  # Логистика
                     'dop_price': dop_price,  # Доп расходы
-                    'comissions': comissions,  # Комисии (пока в доработке, поэтому ноль)
                     'price': price,  # Стоимость
                     'goods_sold': goods_sold,  # Товаров продано
                     'goods_returned': goods_returned,  # Товаров возвращенно
-                }
 
+                    'comissions': comissions,  # Комисии (пока в доработке, поэтому ноль)
+                    'sale_comissions': None,  # Комиссии за продажу
+                    'order_assembly': None,  # Сборка заказа
+                    'magistral': None,   # Магистраль
+                    'last_mile': None,  # Последняя миля
+                    'price_of_returns': None,  # Плата за возвраты и отмены
+                    'cost_price_all': None,  # Себестоимость товаров
+                    'operational_cost': None,  # Операционные расходы
+                    'profit': None,  # Прибыль
+                    'roi': None,  # ROI
+                    'marginality': None,  # Маржинальность
+
+                    'preview': preview,  # Превью
+                    'name': name,  # Название товара
+                    'sku': sku,  # Артикул
+                    'returns_percent': returns_percent,  # Процентов возврата
+                }
                 data_list.append(data)
 
             return Response(data_list, status=status.HTTP_200_OK)
+
+
+class ProductInOrderSet(APIView):
+    '''
+        Получение не хватающих данных в архивных товарах
+        (в актуальных эти данные вводит пользователь)
+        данные передаются через Form-data:
+
+            days_for_production
+            reorder_days_of_supply
+            unit_price
+            logistics_price
+            additional_price
+
+        Названия полей на русском:
+
+            'Времени необходимо для производства'
+            'Глубина поставки'
+            'Цена юнита'
+            'Цена логистики'
+            'Дополнительные затраты'
+    '''
+
+    def post(self, request, sku):
+
+        days_for_production = int(request.data['days_for_production']) if request.data['days_for_production'] is not None else 0
+        reorder_days_of_supply = int(request.data['reorder_days_of_supply']) if request.data['reorder_days_of_supply'] is not None else 0
+        unit_price = int(request.data['unit_price']) if request.data['unit_price'] is not None else 0
+        logistics_price = int(request.data['logistics_price']) if request.data['logistics_price'] is not None else 0
+        additional_price = int(request.data['additional_price']) if request.data['additional_price'] is not None else 0
+
+        sum_price = unit_price + logistics_price + additional_price
+
+        products_in_order = ProductInOrder.objects.filter(sku=sku, user_id=request.user.pk)
+        for product_in_order in products_in_order:
+            product_in_order.days_for_production = days_for_production
+            product_in_order.reorder_days_of_supply = reorder_days_of_supply
+            product_in_order.unit_price = unit_price
+            product_in_order.logistics_price = logistics_price
+            product_in_order.additional_price = additional_price
+            product_in_order.sum_price = sum_price
+            product_in_order.save()
+        return Response(status=status.HTTP_202_ACCEPTED)
