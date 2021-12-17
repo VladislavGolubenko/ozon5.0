@@ -579,7 +579,8 @@ class ProductDashbordView(APIView):
                     comissions = 0  # Комисии (пока в доработке, поэтому ноль)
                     price = cost_price + logistic_price + dop_price + comissions  # Стоимость
                 else:
-                    return Response(sku, status=status.HTTP_404_NOT_FOUND)
+                    sku_dict = {'sku': sku, }
+                    return Response(sku_dict, status=status.HTTP_404_NOT_FOUND)
 
                 # Себестоимость товаров (НА УТОЧНЕНИИ)
                 # Операционные расходы (НА УТОЧНЕНИИ)

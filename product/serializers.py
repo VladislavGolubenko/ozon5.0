@@ -10,8 +10,25 @@ from .models import (
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    '''
+        изменение продукта представляет собой заполнение input полей (глубина поставки, дней для производства,
+        цена юнита, цена логистики, добавленная стоимость)
+
+        Передаем через form-data:
+            unit_price
+            logistics_price
+            additional_price
+            days_for_production
+            reorder_days_of_supply
+    '''
+
+    preview = serializers.CharField(required=False)
+    ozon_product_id = serializers.CharField(required=False)
+    sku = serializers.CharField(required=False)
+    name = serializers.CharField(required=False)
 
     def update(self, instance, validated_data):
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
@@ -29,8 +46,6 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class ProductInOrderSerializer(serializers.ModelSerializer):
-
-
 
     class Meta:
         model = ProductInOrder
