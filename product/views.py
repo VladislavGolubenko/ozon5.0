@@ -115,7 +115,7 @@ class ProductDetailAction(APIView):
 
     def put(self, request, pk):
         queryset = self.get_object(pk)
-        serializer = ProductSerializer(queryset, data=request.data)
+        serializer = ProductSerializer(queryset, data=request.data, context={'request': request, 'sku': queryset.sku, })
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

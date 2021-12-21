@@ -21,6 +21,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     Поля которые необходимо указывать при изменении пароля:
         new_password
+
+    Для изменения данны
     """
 
     password = serializers.CharField(required=False)
@@ -44,15 +46,10 @@ class UserSerializer(serializers.ModelSerializer):
             api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list',  headers={'Client-Id': ozon_id,
                                 'Api-Key': api_key, 'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
 
-            user = User.objects.get(id=user_id.id)
-
             if api_key_isset.status_code == 200:
 
                 for attr, value in validated_data.items():
                     setattr(instance, attr, value)
-
-                # password = validated_data.get("password", None)
-                # instance.set_password(password)
 
                 instance.save()
                 get_product.delay(user_id=user_id.id)
@@ -76,10 +73,19 @@ class UserSerializer(serializers.ModelSerializer):
             return instance
 
         else:
+            user = User.objects.get(id=user_id.id)
+
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
-            instance.save()
-            return instance
+
+            password = validated_data.get("password", None)
+
+            if user.password == password:
+                instance.save()
+                return instance
+            elif password == None:
+                instance.save()
+                return instance
 
     new_password = serializers.CharField(max_length=32, write_only=True, required=False)
 

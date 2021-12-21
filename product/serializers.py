@@ -28,12 +28,32 @@ class ProductSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=False)
 
     def update(self, instance, validated_data):
+        user_id = self.context['request'].user
+        sku = self.context['sku']
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
         summ_price = validated_data['unit_price'] + validated_data['logistics_price'] + validated_data['additional_price']
         setattr(instance, 'summ_price', summ_price)
+
+        product_in_order_query = ProductInOrder.objects.filter(user_id=user_id.pk, sku=sku)
+
+        for product_in_order in product_in_order_query:
+            unit_price = validated_data['unit_price']
+            logistics_price = validated_data['logistics_price']
+            additional_price = validated_data['additional_price']
+            days_for_production = validated_data['days_for_production']
+            reorder_days_of_supply = validated_data['reorder_days_of_supply']
+
+            product_in_order.days_for_production = days_for_production
+            product_in_order.reorder_days_of_supply = reorder_days_of_supply
+            product_in_order.unit_price = unit_price
+            product_in_order.logistics_price = logistics_price
+            product_in_order.additional_price = additional_price
+
+            product_in_order.sum_price = summ_price
+            product_in_order.save()
 
         instance.save()
         return instance
