@@ -2,7 +2,6 @@ from ozon.celery import app
 from get_data.models import User
 from rest_framework.response import Response
 from rest_framework import status
-from itertools import product
 from datetime import datetime, date
 from datetime import timedelta
 import requests

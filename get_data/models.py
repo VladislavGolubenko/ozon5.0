@@ -6,7 +6,6 @@ from django.contrib.auth.models import (
     BaseUserManager,
 )
 from django.contrib.auth.models import User
-from datetime import datetime, date
 from datetime import timedelta
 import requests
 
@@ -48,6 +47,38 @@ class UserManager(BaseUserManager):
             raise ValueError("Superuser must have is_superuser=True.")
 
         return self._create_user(email, password, **extra_fields)
+
+
+class MarketplaceManager(models.Manager):
+    def create_marketplace(self, marketplace_name, marketplace_id, api_key, last_validations_date):
+
+        marketplace = self.create(marketplace_name=marketplace_name, marketplace_id=marketplace_id, api_key=api_key,
+                                  last_validations_date=last_validations_date)
+        return marketplace
+
+
+class Marketplace(models.Model):
+
+    OZON = "ozon"
+
+    MARKETPLASE = [
+        (OZON, 'ozon'),
+    ]
+
+    marketplace_name = models.CharField(verbose_name="Название маркетплейса", max_length=100)
+    marketplace_id = models.IntegerField(verbose_name="ID пользователя маркетплейса", default=0, blank=True, null=True)
+    api_key = models.CharField(verbose_name="API ключ", max_length=500, blank=True, null=True)
+    last_validations_date = models.DateTimeField(verbose_name="Дата последней проверки", blank=True, null=True)
+
+    objects = MarketplaceManager()
+
+    class Meta:
+        verbose_name = "маркетплейс"
+        verbose_name_plural = "маркетплейсы"
+        ordering = ("id",)
+
+    def __str__(self):
+        return self.id
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -103,6 +134,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     card = models.CharField(max_length=16, null=True, blank=True, verbose_name="Карта")
     card_year = models.CharField(max_length=5, null=True, blank=True, verbose_name="Срок действия карты")
     card_ovner = models.CharField(max_length=250, null=True, blank=True, verbose_name="Данные владельца карты")
+
+    marketplace_data = models.ManyToManyField("Marketplace", related_name="user_marketplace", blank=True, null=True)
 
     ozon_id = models.IntegerField(verbose_name="ID пользователя OZON", default=0, blank=True, null=True)
     api_key = models.CharField(max_length=500, verbose_name="API ключ OZON", blank=True, null=True)

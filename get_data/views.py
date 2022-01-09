@@ -1,6 +1,6 @@
-from rest_framework import status
+from rest_framework import status, permissions
 from rest_framework.response import Response
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from rest_framework.views import APIView
 import requests
 
@@ -9,6 +9,7 @@ from .serializers import *
 
 
 class UserAction(APIView):
+    permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
 
@@ -18,6 +19,7 @@ class UserAction(APIView):
 
 
 class RatesView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
 
@@ -27,6 +29,13 @@ class RatesView(APIView):
 
 
 class RateView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self, pk):
+        try:
+            return Rate.objects.get(pk=pk)
+        except Rate.DoesNotExist:
+            raise Http404
 
     def put(self, request, pk):
 
@@ -46,14 +55,39 @@ class RateView(APIView):
         return Response(serializer.data)
 
 
-def test_action(request):
-    user_transaction_query = Transaction.objects.filter(id_user=1)
-    return_transaction = ''
+class UserView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
 
-    for user_transaction in user_transaction_query:
-        return_transaction = return_transaction + f'Номер транзакции:{user_transaction.transaction_number}, \n ' \
-                                                  f'Дата транзакции:{user_transaction.date_issued}, \n Тип оплаты:' \
-                                                  f'{user_transaction.type}, \n Тариф: {user_transaction.rate}, \n ' \
-                                                  f'Сумма:{user_transaction.summ} \n \n \n'
+    def get_object(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise Http404
 
-    return HttpResponse('<h1>Transaction</h1>')
+    def put(self, request, pk):
+        queryset = self.get_object(pk)
+        serializer = UserSerializer(queryset, data=request.data, context={'request': request, 'pk': pk, })
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, pk):
+        queryset = self.get_object(pk)
+        serializer = UserSerializer(queryset)
+        return Response(serializer.data)
+
+# def test_action(request):
+#     permission_classes = [permissions.IsAuthenticated]
+#     user_transaction_query = Transaction.objects.filter(id_user=1)
+#     return_transaction = ''
+#
+#     for user_transaction in user_transaction_query:
+#         return_transaction = return_transaction + f'Номер транзакции:{user_transaction.transaction_number}, \n ' \
+#                                                   f'Дата транзакции:{user_transaction.date_issued}, \n Тип оплаты:' \
+#                                                   f'{user_transaction.type}, \n Тариф: {user_transaction.rate}, \n ' \
+#                                                   f'Сумма:{user_transaction.summ} \n \n \n'
+#
+#     return HttpResponse('<h1>Transaction</h1>')

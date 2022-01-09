@@ -19,10 +19,10 @@ class MeViewSet(APIView):
         return Response(data=user_data.data, status=status.HTTP_200_OK)
 
 
-class UserViewSet(viewsets.ModelViewSet):
-
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+# class UserViewSet(viewsets.ModelViewSet):
+#
+#     queryset = User.objects.all()
+#     serializer_class = UserSerializer(context={'request': request, 'sku': queryset.sku, })
 
     # def perform_create(self, serializer):
     #     user = None

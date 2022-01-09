@@ -102,7 +102,6 @@ class OzonTransactions(models.Model):
     amount = models.FloatField(verbose_name="Amount")
     type = models.CharField(max_length=250, verbose_name="Тип")
     posting_number = models.CharField(max_length=500, verbose_name="Номер доставки")
-    # items = models.CharField(max_length=5000, verbose_name="Товары")
     services = models.CharField(max_length=10000, verbose_name="Виды услуг")
 
     product = models.ManyToManyField("ProductInOrder", related_name="product_in_transaction", blank=True, null=True)
@@ -172,7 +171,6 @@ class Order(models.Model):
 class Product(models.Model):
 
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="products_to_user", null=True, blank=True)
-
     preview = models.CharField(max_length=300, verbose_name='Превью')
     ozon_product_id = models.IntegerField(verbose_name='ID товара')
     sku = models.CharField(max_length=100, verbose_name='SKU')
@@ -183,16 +181,11 @@ class Product(models.Model):
     logistics_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена логистики')
     additional_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Дополнительные затраты')
     summ_price = models.FloatField(blank=True, null=True, verbose_name='Итого')
-
-    # Поле равное маркетинг прайс или в случае нуля обычной цене (получается по апи)
     marketing_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена')
-
     stock_balance = models.IntegerField(verbose_name="Остатки на складе", null=True)
     way_to_warehous = models.IntegerField(verbose_name="В пути на склад", null=True)
     reserved = models.IntegerField(verbose_name="Зарезервировано", blank=True, null=True)
-
     creating_date = models.DateField(auto_now_add=True, blank=True, null=True)
-
     objects = ProductManager()
 
     @property
@@ -254,14 +247,12 @@ class ProductInOrder(models.Model):
     return_not_deliv_to_customer = models.FloatField(verbose_name="Возврат товара от покупателя")
     return_part_goods_customer = models.FloatField(verbose_name="Возврат части заказа покупателю")
     return_after_deliv_to_customer = models.FloatField(verbose_name="Возврат доставленного товара")
-
     days_for_production = models.IntegerField(blank=True, null=True, verbose_name='Времени необходимо для производства')
     reorder_days_of_supply = models.IntegerField(blank=True, null=True, verbose_name='Глубина поставки')
     unit_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена юнита')
     logistics_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена логистики')
     additional_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Дополнительные затраты')
     summ_price = models.FloatField(blank=True, null=True, verbose_name='Итого')
-
     creating_date = models.DateField(auto_now_add=True)
 
     def __str__(self):
@@ -284,10 +275,8 @@ class OzonMetrics(models.Model):
         null=True,
         blank=True
     )
-
     product_id = models.IntegerField(verbose_name='ID товара')
     product_name = models.CharField(max_length=300, verbose_name='Название товара')
-
     hits_view_search = models.FloatField(verbose_name="показы в поиске и в категории")
     hits_view_pdp = models.FloatField(verbose_name="показы на карточке товара")
     hits_view = models.FloatField(verbose_name="всего показов")
@@ -312,7 +301,6 @@ class OzonMetrics(models.Model):
     position_category = models.FloatField(verbose_name="позиция в поиске и категории")
     postings = models.FloatField(verbose_name="отправления")
     postings_premium = models.FloatField(verbose_name="отправления с подпиской Premium")
-
     creating_date = models.DateField(auto_now_add=True, verbose_name="Дата создания")
 
     def __str__(self):

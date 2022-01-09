@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from django_filters import rest_framework as filters
 from .models import (
     Product,
     Order,
@@ -69,26 +68,19 @@ class ProductInOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProductInOrder
-        fields = ('id', 'preview', 'user_id', 'order_id', 'sku', 'name', 'quantity', 'offer_id', 'price', 'price_f',
-                  'comission_amount', 'payout', 'product_id', 'fulfillment', 'direct_flow_trans', 'return_flow_trans',
-                  'deliv_to_customer', 'return_not_deliv_to_customer', 'return_part_goods_customer',
-                  'return_after_deliv_to_customer', 'creating_date')
+        fields = "__all__"
 
 
 class OzonTransactionsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OzonTransactions
-        fields = ('id', 'user_id', 'operation_id', 'operation_type', 'operation_date', 'operation_type_name',
-                  'accruals_for_sale', 'sale_commission', 'amount', 'type', 'posting_number', 'services')
+        fields = "__all__"
 
 
 class OrderSerializer(serializers.ModelSerializer):
     get_product_in_order = ProductInOrderSerializer(many=True)
 
-    # Сумма комиссий
-    # get_summ_comission = OzonTransactionsSerializer(many=True)
-    # Прибыль
     class Meta:
         model = Order
         fields = ('id', 'user_id', 'order_number', 'date_of_order', 'in_process_at', 'status', 'posting_number',
@@ -100,11 +92,7 @@ class OzonMetricsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OzonMetrics
-        fields = ('user_id', 'product_id', 'product_name', 'hits_view_search', 'hits_view_pdp', 'hits_view',
-                  'hits_tocart_search', 'hits_tocart_pdp', 'hits_tocart', 'session_view_search', 'session_view_pdp',
-                  'session_view', 'conv_tocart_search', 'conv_tocart_pdp', 'conv_tocart', 'revenue', 'returns',
-                  'cancellations', 'ordered_units', 'delivered_units', 'adv_view_pdp', 'adv_view_search_category',
-                  'adv_view_all', 'adv_sum_all', 'position_category', 'postings', 'postings_premium', 'creating_date')
+        fields = "__all__"
 
 
 class WarehouseAccountSerializer(serializers.Serializer):
