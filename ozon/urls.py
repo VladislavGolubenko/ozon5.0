@@ -11,6 +11,7 @@ from .yasg import urlpatterns as doc_urls
 # test_action,
 
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
@@ -18,10 +19,12 @@ urlpatterns = [
     path('api/user/', include('get_data.urls')),
     # path('test/', test_action),
     # path('order/', order_action)
+
     # path('api/', include('rest_framework.urls')),
     # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     # path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
+
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
@@ -29,3 +32,4 @@ urlpatterns += doc_urls
 #
 # if settings.DEBUG:
 #     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

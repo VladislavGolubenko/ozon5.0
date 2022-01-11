@@ -39,3 +39,4 @@ class TransactionViewSet(viewsets.ModelViewSet):
     serializer_class = TransactionSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_fields = ('id_user',)
+

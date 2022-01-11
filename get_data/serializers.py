@@ -155,7 +155,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ("id", "email", "password", "first_name", "last_name", "patronymic", "role", "date_create",
                   "post_agreement", 'card', "card_year", "card_ovner", 'name_org', 'bank', 'inn',
                   'orgn', 'kpp', 'bank_account', 'correspondent_bank_account', 'bik', 'new_password', 'user_tarif_data',
-                  'return_status', 'marketplace_id', 'marketplace_name', "api_key", 'get_marketplace')
+                  'marketplace_id', 'marketplace_name', "api_key", 'get_marketplace')  # 'return_status'
 
 
 class TransactionSerializer(serializers.ModelSerializer):
@@ -235,6 +235,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             get_product.apply_async(id_user=user_pk, eta=task_date)
 
         return transaction
+
 
     class Meta:
 

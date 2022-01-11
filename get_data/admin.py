@@ -16,6 +16,7 @@ class ProductInline(admin.TabularInline):
 class UserAdmin(admin.ModelAdmin):
     list_display = ('email', 'first_name', 'last_name', 'patronymic', 'role', 'date_create', 'is_staff', 'is_active',
                     'post_agreement', 'is_superuser')
+
     list_display_links = ('email',)  # какие поля будут ссылками
     readonly_fields = ('transaction_data',)
 
@@ -95,3 +96,4 @@ admin.site.register(Transaction, TransactionAdmin)
 admin.site.register(PaymentType, PaymentTypeAdmin)
 admin.site.register(Rate, RateAdmin)
 admin.site.register(Marketplace, MarketplaceAdmin)
+

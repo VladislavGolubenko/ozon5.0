@@ -339,3 +339,4 @@ class ProductInOrderSet(APIView):
             product_in_order.sum_price = sum_price
             product_in_order.save()
         return Response(status=status.HTTP_202_ACCEPTED)
+
