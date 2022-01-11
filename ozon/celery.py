@@ -23,11 +23,11 @@ app.conf.beat_schedule = {
 
     'get_analitic_data': {
         'task': 'product.tasks.get_analitic_data',
-        'schsdule': crontab(minute=0, hour=1),
+        'schedule': crontab(minute=0, hour=1),
     },
 
     'update_analitics_data': {
         'task': 'product.tasks.update_analitics_data',
-        'schsdule': crontab(minute=0, hour=1),
+        'schedule': crontab(minute=0, hour=1),
     }
 }

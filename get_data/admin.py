@@ -86,7 +86,12 @@ class RateAdmin(admin.ModelAdmin):
     list_display = ('id', 'rate_name', 'validity', 'price', 'description')
 
 
+class MarketplaceAdmin(admin.ModelAdmin):
+    list_display = ('marketplace_name', 'marketplace_id', 'api_key', 'last_validations_date')
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Transaction, TransactionAdmin)
 admin.site.register(PaymentType, PaymentTypeAdmin)
 admin.site.register(Rate, RateAdmin)
+admin.site.register(Marketplace, MarketplaceAdmin)

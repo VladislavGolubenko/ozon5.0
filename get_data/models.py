@@ -65,9 +65,10 @@ class Marketplace(models.Model):
         (OZON, 'ozon'),
     ]
 
-    marketplace_name = models.CharField(verbose_name="Название маркетплейса", max_length=100)
-    marketplace_id = models.IntegerField(verbose_name="ID пользователя маркетплейса", default=0, blank=True, null=True)
-    api_key = models.CharField(verbose_name="API ключ", max_length=500, blank=True, null=True)
+    marketplace_name = models.CharField(verbose_name="Название маркетплейса", max_length=100, choices=MARKETPLASE)
+    marketplace_id = models.IntegerField(verbose_name="ID пользователя маркетплейса", default=0, blank=True, null=True,
+                                         unique=True)
+    api_key = models.CharField(verbose_name="API ключ", max_length=500, blank=True, null=True, unique=True)
     last_validations_date = models.DateTimeField(verbose_name="Дата последней проверки", blank=True, null=True)
 
     objects = MarketplaceManager()
@@ -78,7 +79,7 @@ class Marketplace(models.Model):
         ordering = ("id",)
 
     def __str__(self):
-        return self.id
+        return str(self.id)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -154,6 +155,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ["password"]
     objects = UserManager()
 
+    @property
+    def get_marketplace(self):
+        marketplace = Marketplace.objects.filter(user_marketplace=self.id) # тут  нужно сделать чтоб выводились маркетплейс определенного пользователя
+        return marketplace
+
+    @property
     def transaction_data(self):
         user_transaction_query = Transaction.objects.filter(id_user=self.id)
         return_transaction = ''
