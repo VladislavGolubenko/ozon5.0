@@ -22,14 +22,14 @@ class MeViewSet(APIView):
 # class UserViewSet(viewsets.ModelViewSet):
 #
 #     queryset = User.objects.all()
-#     serializer_class = UserSerializer(context={'request': request, 'sku': queryset.sku, })
-
-    # def perform_create(self, serializer):
-    #     user = None
-    #     if self.request and hasattr(self.request, "user"):
-    #         user = self.request.user
-    #     serializer.save(user=user, foo='foo')
-
+#     # serializer_class = UserSerializer(context={'request': request, 'sku': queryset.sku, })
+#     serializer_class = UserSerializer
+#
+#     def perform_create(self, serializer):
+#         user = None
+#         if self.request and hasattr(self.request, "user"):
+#             user = self.request.user
+#         serializer.save(user=user, foo='foo')
 
 
 class TransactionViewSet(viewsets.ModelViewSet):

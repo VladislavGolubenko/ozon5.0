@@ -108,6 +108,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     ]
 
+    avatar = models.ImageField(
+        upload_to='photos/%y/%m/%d/',
+        max_length=500,
+        null=True, blank=True
+    )
     email = models.EmailField(
         db_index=True,
         validators=[validators.validate_email],
@@ -284,3 +289,7 @@ class Transaction(models.Model):
         verbose_name_plural = 'транзакции'
         ordering = ['id']
 
+
+class UserResetPasswordCode(models.Model):
+    user = models.ForeignKey("User", on_delete=models.CASCADE)
+    verify_code = models.CharField(max_length=100)

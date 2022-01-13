@@ -47,12 +47,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         user_id = self.context['request'].user
-        print(validated_data.get("api_key"), validated_data.get("marketplace_name"),
-              validated_data.get("marketplace_id"))
 
         if validated_data.get("api_key") is not None:
-            print(validated_data.get("api_key"), validated_data.get("marketplace_name"),
-                  validated_data.get("marketplace_id"))
 
             marketplace_id = str(validated_data['marketplace_id'])
             api_key = validated_data['api_key']
@@ -99,6 +95,10 @@ class UserSerializer(serializers.ModelSerializer):
                         raise ValidationError(
                             detail={"Invalid Api-Key, please contact support": "404"}
                         )
+                else:
+                    raise ValidationError(
+                        detail={"wrong marketplase may not yet be supported ": "404"}
+                    )
             else:
                 if marketplace_name == "ozon":
                     api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list',
@@ -116,6 +116,10 @@ class UserSerializer(serializers.ModelSerializer):
                         raise ValidationError(
                             detail={"Invalid Api-Key, please contact support": "404"}
                         )
+                else:
+                    raise ValidationError(
+                        detail={"wrong marketplase may not yet be supported ": "404"}
+                    )
 
         elif validated_data.get("new_password") is not None:
             for attr, value in validated_data.items():
@@ -152,7 +156,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("id", "email", "password", "first_name", "last_name", "patronymic", "role", "date_create",
+        fields = ("id", "avatar", "email", "password", "first_name", "last_name", "patronymic", "role", "date_create",
                   "post_agreement", 'card', "card_year", "card_ovner", 'name_org', 'bank', 'inn',
                   'orgn', 'kpp', 'bank_account', 'correspondent_bank_account', 'bik', 'new_password', 'user_tarif_data',
                   'marketplace_id', 'marketplace_name', "api_key", 'get_marketplace')  # 'return_status'
@@ -236,7 +240,6 @@ class TransactionSerializer(serializers.ModelSerializer):
 
         return transaction
 
-
     class Meta:
 
         model = Transaction
@@ -251,3 +254,19 @@ class RateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rate
         fields = "__all__"
+
+
+class SendResetPasswordEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
+
+class ResetPasswordEmailSerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=True)
+    verify_code = serializers.CharField(max_length=100, required=True)
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={"input_type": "password", "placeholder": "Password"},
+    )
+
+

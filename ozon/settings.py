@@ -216,6 +216,7 @@ REST_FRAMEWORK = {
 
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
+URL_FRONT = 'http://176.119.147.237'
 
 AUTH_USER_MODEL = "get_data.User"
 
@@ -243,3 +244,10 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.yandex.ru"
+EMAIL_USE_SSL = True
+EMAIL_PORT = 465
+EMAIL_HOST_USER = "vladislav.golubenko99@yandex.ru"
+EMAIL_HOST_PASSWORD = "jfqoueroimfghqlx"

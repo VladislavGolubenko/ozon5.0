@@ -26,14 +26,13 @@ class UserAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('first_name', 'last_name', 'patronymic', 'post_agreement', 'is_staff', 'is_active')
+            'fields': ('avatar', 'first_name', 'last_name', 'patronymic', 'post_agreement', 'is_staff', 'is_active')
         }),
 
-        ('Данные OZON', {
-            'classes': ('collapse',),
-            'fields': (
-                'ozon_id', 'api_key'),
-        }),
+        # ('Данные OZON', {
+        #     'classes': ('collapse',),
+        #     'fields': (),
+        # }),
 
         ('Данные для оплаты', {
             'classes': ('collapse',),
