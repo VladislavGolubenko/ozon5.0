@@ -65,10 +65,9 @@ class Marketplace(models.Model):
         (OZON, 'ozon'),
     ]
 
-    marketplace_name = models.CharField(verbose_name="Название маркетплейса", max_length=100, choices=MARKETPLASE)
-    marketplace_id = models.IntegerField(verbose_name="ID пользователя маркетплейса", default=0, blank=True, null=True,
-                                         unique=True)
-    api_key = models.CharField(verbose_name="API ключ", max_length=500, blank=True, null=True, unique=True)
+    marketplace_name = models.CharField(verbose_name="Название маркетплейса", max_length=100)
+    marketplace_id = models.IntegerField(verbose_name="ID пользователя маркетплейса", default=0, blank=True, null=True)
+    api_key = models.CharField(verbose_name="API ключ", max_length=500, blank=True, null=True)
     last_validations_date = models.DateTimeField(verbose_name="Дата последней проверки", blank=True, null=True)
 
     objects = MarketplaceManager()
@@ -79,12 +78,7 @@ class Marketplace(models.Model):
         ordering = ("id",)
 
     def __str__(self):
-        return str(self.id)
-
-    # def update_ozon_user(self, ozon_id, api_key):
-    #
-    #     ozon_user = self.update(ozon_id=ozon_id, api_key=api_key)
-    #     return ozon_user
+        return self.id
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -105,14 +99,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         (USER, "user"),
         (ADMIN, "admin"),
         (SUBSCRIPTION, "subscription"),
-
     ]
 
-    avatar = models.ImageField(
-        upload_to='photos/%y/%m/%d/',
-        max_length=500,
-        null=True, blank=True
-    )
     email = models.EmailField(
         db_index=True,
         validators=[validators.validate_email],
@@ -149,8 +137,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     marketplace_data = models.ManyToManyField("Marketplace", related_name="user_marketplace", blank=True, null=True)
 
-    # ozon_id = models.IntegerField(verbose_name="ID пользователя OZON", default=0, blank=True, null=True)
-    # api_key = models.CharField(max_length=500, verbose_name="API ключ OZON", blank=True, null=True)
+    ozon_id = models.IntegerField(verbose_name="ID пользователя OZON", default=0, blank=True, null=True)
+    api_key = models.CharField(max_length=500, verbose_name="API ключ OZON", blank=True, null=True)
 
     name_org = models.CharField(max_length=256, null=True, blank=True, verbose_name="Название организации")
     inn = models.CharField(max_length=12, null=True, blank=True, verbose_name="ИНН")
@@ -166,20 +154,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ["password"]
     objects = UserManager()
 
-    @property
-    def get_marketplace(self):
-        marketplace = Marketplace.objects.filter(user_marketplace=self.id) # тут  нужно сделать чтоб выводились маркетплейс определенного пользователя
-        return marketplace
-
-    @property
     def transaction_data(self):
         user_transaction_query = Transaction.objects.filter(id_user=self.id)
         return_transaction = ''
-
-    # @classmethod
-    # def transaction_data(obj):
-    #     user_transaction_query = Transaction.objects.filter(id_user=1)
-    #     return_transaction = ''
 
         for user_transaction in user_transaction_query:
             return_transaction = return_transaction + f'Номер транзакции:  {user_transaction.transaction_number}, ' \
@@ -218,18 +195,17 @@ class User(AbstractBaseUser, PermissionsMixin):
 
         return rate_data
 
-    # def return_status(self):
-    #     api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list', headers={'Client-Id': str(self.ozon_id),
-    #                                                                                          'Api-Key': self.api_key,
-    #                                                                                          'Content-Type': 'application/json',
-    #                                                                                          'Host': 'api-seller.ozon.ru'})
-    #     if api_key_isset.status_code == 200:
-    #         status = 'valid'
-    #     else:
-    #         status = 'novalid'
-    #
-    #     return status
+    def return_status(self):
+        api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list', headers={'Client-Id': str(self.ozon_id),
+                                                                                             'Api-Key': self.api_key,
+                                                                                             'Content-Type': 'application/json',
+                                                                                             'Host': 'api-seller.ozon.ru'})
+        if api_key_isset.status_code == 200:
+            status = 'valid'
+        else:
+            status = 'novalid'
 
+        return status
 
     class Meta:
         verbose_name = "пользователя"
@@ -288,8 +264,3 @@ class Transaction(models.Model):
         verbose_name = 'транзакцию'
         verbose_name_plural = 'транзакции'
         ordering = ['id']
-
-
-class UserResetPasswordCode(models.Model):
-    user = models.ForeignKey("User", on_delete=models.CASCADE)
-    verify_code = models.CharField(max_length=100)

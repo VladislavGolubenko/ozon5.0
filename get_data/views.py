@@ -1,16 +1,11 @@
-import uuid
-import requests
 from rest_framework import status, permissions
 from rest_framework.response import Response
 from django.http import HttpResponse, Http404
 from rest_framework.views import APIView
+import requests
 
 from .models import *
 from .serializers import *
-from ozon.settings import URL_FRONT
-from django.db.models import Q
-from .service import send_email_reset_password
-from .utils import AccountUtils
 
 
 class UserAction(APIView):
@@ -69,14 +64,9 @@ class UserView(APIView):
         except User.DoesNotExist:
             raise Http404
 
-    def put(self, request, pk):
+    def patch(self, request, pk):
         queryset = self.get_object(pk)
-        serializer = UserSerializer(
-            queryset,
-            data=request.data,
-            files=request.FILES,
-            context={'request': request, 'pk': pk, }
-        )
+        serializer = UserSerializer(queryset, data=request.data, context={'request': request, 'pk': pk, })
 
         if serializer.is_valid():
             serializer.save()
@@ -88,77 +78,6 @@ class UserView(APIView):
         queryset = self.get_object(pk)
         serializer = UserSerializer(queryset)
         return Response(serializer.data)
-
-
-class SendMailForgotPasswordView(APIView):
-    permission_classes = [permissions.AllowAny]
-    serializer_class = SendResetPasswordEmailSerializer
-
-    def post(self, request, *args, **kwargs):
-        print(request.data)
-        user = User.objects.filter(email=request.data.get("email")).first()
-        if user is None:
-            return Response(
-                data={"error send mail": "user does not exist"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        verify_code = uuid.uuid4().hex
-        UserResetPasswordCode.objects.create(user=user, verify_code=verify_code)
-        url_confirm = (
-            URL_FRONT + f"/email-reset-password/?verify_code={verify_code}&id={user.pk}"
-        )
-        print(url_confirm)
-        send_email_reset_password(request.data.get("email"), url_confirm)
-        return Response(data={"status": "email sent"}, status=status.HTTP_200_OK)
-
-
-class ForgotPasswordView(APIView):
-    permission_classes = [permissions.AllowAny]
-    serializer_class = ResetPasswordEmailSerializer
-
-    def post(self, request, *args, **kwargs):
-        print(request.data)
-        id_user = request.data.get("id", None)
-        verify_code = request.data.get("verify_code", None)
-        password = request.data.get("password", None)
-
-        if id_user is None or verify_code is None or password is None:
-
-            return Response(
-                data={"confirmation error": "required id field is missing"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if str(id_user).isdigit() is False:
-            return Response(
-                data={"confirmation error": "required id field is missing"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        verify_object = UserResetPasswordCode.objects.filter(
-            Q(user=id_user) & Q(verify_code=verify_code)
-        ).first()
-
-        if verify_object is None:
-            return Response(
-                data={"confirmation error": "id or verify_code is incorrect"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        else:
-            verify_object.delete()
-            user = User.objects.filter(pk=id_user).first()
-            if user:
-                user.set_password(password)
-                user.save()
-                tokens = AccountUtils.get_tokens_for_user(user)
-                return Response(tokens, status=status.HTTP_200_OK)
-            else:
-                return Response(
-                    data={"confirmation error": "required id field is missing"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        # return Response(data={"status": "password changed"}, status=status.HTTP_200_OK)
-
 
 # def test_action(request):
 #     permission_classes = [permissions.IsAuthenticated]
@@ -172,4 +91,3 @@ class ForgotPasswordView(APIView):
 #                                                   f'Сумма:{user_transaction.summ} \n \n \n'
 #
 #     return HttpResponse('<h1>Transaction</h1>')
-

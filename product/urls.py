@@ -14,5 +14,4 @@ urlpatterns = [
     path('analitic_company/', views.CompanyDashbordView().as_view()),
     path('analitic_product/', views.ProductDashbordView().as_view()),
     path('productinorder/<slug:sku>/', views.ProductInOrderSet.as_view()),
-
 ]

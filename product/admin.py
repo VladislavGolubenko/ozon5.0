@@ -5,7 +5,6 @@ from .models import *
 
 
 class ProductAdmin(admin.ModelAdmin):
-
     list_display = ('get_photo', 'user_id', 'ozon_product_id', 'marketing_price', 'sku', 'name', 'stock_balance',
                     'way_to_warehous', 'unit_price', 'logistics_price', 'additional_price', 'summ_price',
                     'reorder_days_of_supply', 'days_for_production')
@@ -60,4 +59,3 @@ admin.site.register(Product, ProductAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(ProductInOrder, ProductInOrderAdmin)
 admin.site.register(OzonMetrics, OzonMetricsAdmin)
-

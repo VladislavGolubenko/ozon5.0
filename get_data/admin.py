@@ -16,7 +16,6 @@ class ProductInline(admin.TabularInline):
 class UserAdmin(admin.ModelAdmin):
     list_display = ('email', 'first_name', 'last_name', 'patronymic', 'role', 'date_create', 'is_staff', 'is_active',
                     'post_agreement', 'is_superuser')
-
     list_display_links = ('email',)  # какие поля будут ссылками
     readonly_fields = ('transaction_data',)
 
@@ -26,13 +25,14 @@ class UserAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('avatar', 'first_name', 'last_name', 'patronymic', 'post_agreement', 'is_staff', 'is_active')
+            'fields': ('first_name', 'last_name', 'patronymic', 'post_agreement', 'is_staff', 'is_active')
         }),
 
-        # ('Данные OZON', {
-        #     'classes': ('collapse',),
-        #     'fields': (),
-        # }),
+        ('Данные OZON', {
+            'classes': ('collapse',),
+            'fields': (
+                'ozon_id', 'api_key'),
+        }),
 
         ('Данные для оплаты', {
             'classes': ('collapse',),
@@ -86,13 +86,7 @@ class RateAdmin(admin.ModelAdmin):
     list_display = ('id', 'rate_name', 'validity', 'price', 'description')
 
 
-class MarketplaceAdmin(admin.ModelAdmin):
-    list_display = ('marketplace_name', 'marketplace_id', 'api_key', 'last_validations_date')
-
-
 admin.site.register(User, UserAdmin)
 admin.site.register(Transaction, TransactionAdmin)
 admin.site.register(PaymentType, PaymentTypeAdmin)
 admin.site.register(Rate, RateAdmin)
-admin.site.register(Marketplace, MarketplaceAdmin)
-

@@ -1,21 +1,10 @@
-from __future__ import annotations
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
 from .models import *
-from product.tasks import get_product, get_order, get_ozon_transaction, get_analitic_data
+from product.tasks import create_or_update_products, get_order, get_ozon_transaction, get_analitic_data
 from datetime import datetime, date
 from datetime import timedelta
 import openpyxl
-
-
-class MarketplaceSerializer(serializers.ModelSerializer):
-    """
-        данные от маркетплейса для каждого из пользователей
-    """
-
-    class Meta:
-        model = Marketplace
-        fields = "__all__"
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -29,14 +18,15 @@ class UserSerializer(serializers.ModelSerializer):
         marketplace_id
         api_key
         marketplace_name
-        (при совпадении названия маркетплейса и id маркетплейса данные будут изменяться если нет, то добавляться новый
-        api ключ может меняться, поэтому он не задействуется)
 
     Поля которые необходимо указывать при изменении пароля:
         new_password
 
     Для изменения данны
     """
+
+    password = serializers.CharField(required=False)
+    email = serializers.EmailField(required=False)
 
     def create(self, validated_data):
         user = User(**validated_data)
@@ -49,76 +39,33 @@ class UserSerializer(serializers.ModelSerializer):
         user_id = self.context['request'].user
 
         if validated_data.get("api_key") is not None:
-
             marketplace_id = str(validated_data['marketplace_id'])
             api_key = validated_data['api_key']
             marketplace_name = validated_data['marketplace_name']
             pk = self.context['pk']
             user = User.objects.get(pk=pk)
 
-            """
-            Условие при котором добавляем данные маркетплейса (если запрос возвращает с текущим названием маркетплейса и id 
-            то изменяем апи ключ, в другом случае добавляем новый)
-            """
+            if marketplace_name == "ozon":
+                api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list',  headers={'Client-Id': marketplace_id,
+                                                                                                      'Api-Key': api_key,
+                                                                                                      'Content-Type': 'application/json',
+                                                                                                      'Host': 'api-seller.ozon.ru'})
+                if api_key_isset.status_code == 200:
+                    last_validations_date = datetime.now()
+                    marketplace = Marketplace.objects.create_marketplace(marketplace_name=marketplace_name, marketplace_id=marketplace_id,
+                                                                         api_key=api_key, last_validations_date=last_validations_date)
 
-            try:
-                check = True
-                marketplace_id_query = Marketplace.objects.get(user_marketplace=pk, marketplace_name=marketplace_name,
-                                                               marketplace_id=marketplace_id)
-            except:
-            # if not marketplace_id_query:
-            #     print("if not")
-                check = False
+                    user.marketplace_data.add(marketplace.pk)
 
-            if check == False:
-                if marketplace_name == "ozon":
-                    api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list',
-                                                  headers={'Client-Id': marketplace_id, 'Api-Key': api_key,
-                                                           'Content-Type': 'application/json',
-                                                           'Host': 'api-seller.ozon.ru'})
-                    if api_key_isset.status_code == 200:
-                        last_validations_date = datetime.now()
-                        marketplace = Marketplace.objects.create_marketplace(marketplace_name=marketplace_name,
-                                                                             marketplace_id=marketplace_id,
-                                                                             api_key=api_key,
-                                                                             last_validations_date=last_validations_date)
-
-                        user.marketplace_data.add(marketplace.pk)
-
-                        instance.save()
-                        get_product.delay(user_id=user_id.id)
-                        get_order.delay(user_id=user_id.id)
-                        get_ozon_transaction.delay(user_id=user_id.id)
-                        get_analitic_data.delay(user_id=user_id.id)
-                        return marketplace
-                    else:
-                        raise ValidationError(
-                            detail={"Invalid Api-Key, please contact support": "404"}
-                        )
+                    # instance.save()
+                    # get_product.delay(user_id=user_id.id)
+                    # get_order.delay(user_id=user_id.id)
+                    # get_ozon_transaction.delay(user_id=user_id.id)
+                    # get_analitic_data.delay(user_id=user_id.id)
+                    return marketplace
                 else:
                     raise ValidationError(
-                        detail={"wrong marketplase may not yet be supported ": "404"}
-                    )
-            else:
-                if marketplace_name == "ozon":
-                    api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list',
-                                                  headers={'Client-Id': marketplace_id, 'Api-Key': api_key,
-                                                           'Content-Type': 'application/json',
-                                                           'Host': 'api-seller.ozon.ru'})
-                    if api_key_isset.status_code == 200:
-                        last_validations_date = datetime.now()
-                        marketplace_id_query.last_validations_date = last_validations_date
-                        marketplace_id_query.api_key = api_key
-                        marketplace_id_query.save()
-
-                        return marketplace_id_query
-                    else:
-                        raise ValidationError(
-                            detail={"Invalid Api-Key, please contact support": "404"}
-                        )
-                else:
-                    raise ValidationError(
-                        detail={"wrong marketplase may not yet be supported ": "404"}
+                        detail={"Invalid Api-Key, please contact support": "404"}
                     )
 
         elif validated_data.get("new_password") is not None:
@@ -146,20 +93,17 @@ class UserSerializer(serializers.ModelSerializer):
                 instance.save()
                 return instance
 
-    password = serializers.CharField(required=False)
-    email = serializers.EmailField(required=False)
     new_password = serializers.CharField(max_length=32, write_only=True, required=False)
     marketplace_id = serializers.IntegerField(write_only=True, required=False)
     marketplace_name = serializers.CharField(max_length=32, write_only=True, required=False)
-    api_key = serializers.CharField(max_length=50, write_only=True, required=False)
-    get_marketplace = MarketplaceSerializer(many=True, read_only=True)
+
 
     class Meta:
         model = User
-        fields = ("id", "avatar", "email", "password", "first_name", "last_name", "patronymic", "role", "date_create",
-                  "post_agreement", 'card', "card_year", "card_ovner", 'name_org', 'bank', 'inn',
+        fields = ("id", "email", "password", "first_name", "last_name", "patronymic", "role", "date_create",
+                  "post_agreement", 'card', "card_year", "card_ovner", "ozon_id", "api_key", 'name_org', 'bank', 'inn',
                   'orgn', 'kpp', 'bank_account', 'correspondent_bank_account', 'bik', 'new_password', 'user_tarif_data',
-                  'marketplace_id', 'marketplace_name', "api_key", 'get_marketplace')  # 'return_status'
+                  'return_status', 'marketplace_id', 'marketplace_name')
 
 
 class TransactionSerializer(serializers.ModelSerializer):
@@ -236,7 +180,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             user.role = 'subscription'
             user.save()
             task_date = datetime.utcnow() + timedelta(days=rate.validity)
-            get_product.apply_async(id_user=user_pk, eta=task_date)
+            create_or_update_products.apply_async(id_user=user_pk, eta=task_date)
 
         return transaction
 
@@ -254,19 +198,3 @@ class RateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rate
         fields = "__all__"
-
-
-class SendResetPasswordEmailSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
-
-
-class ResetPasswordEmailSerializer(serializers.Serializer):
-    id = serializers.IntegerField(required=True)
-    verify_code = serializers.CharField(max_length=100, required=True)
-    password = serializers.CharField(
-        write_only=True,
-        required=True,
-        style={"input_type": "password", "placeholder": "Password"},
-    )
-
-

@@ -1,5 +1,6 @@
 import json
 from django.http import HttpResponse, Http404
+import requests
 from rest_framework.pagination import LimitOffsetPagination
 
 from rest_framework.filters import OrderingFilter
@@ -9,6 +10,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
+
+from product.services.products import ProductsOzon
 
 from .serializers import *
 from rest_framework import permissions
@@ -24,6 +27,7 @@ from .service import (
     company_products_function,
 )
 
+from .services.orders import OrdersOzon
 
 class ProductInOrderAction(RetrieveUpdateDestroyAPIView):
     """
@@ -206,7 +210,11 @@ class WarehouseAccountView(APIView):
 
         json_with_id = json.loads(request.body.decode("utf-8"))
         id_of_user = json_with_id['id']
-
+        
+        id_user = request.user.id
+        
+        # print(request.user.id)
+        
         products = Product.objects.filter(user_id=id_of_user)
         datas = []
 
@@ -339,4 +347,3 @@ class ProductInOrderSet(APIView):
             product_in_order.sum_price = sum_price
             product_in_order.save()
         return Response(status=status.HTTP_202_ACCEPTED)
-

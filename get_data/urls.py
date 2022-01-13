@@ -14,8 +14,5 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     # path("test/", test_action),
     path('rates/', RatesView.as_view(), name="rates"),
-    path('rate/<int:pk>/', RateView.as_view(), name="rate"),
-    path("send-mail-forgot-password/", SendMailForgotPasswordView.as_view()),
-    path("email-reset-password/", ForgotPasswordView.as_view()),
-
+    path('rate/<int:pk>/', RateView.as_view(), name="rate")
 ]

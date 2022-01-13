@@ -1,96 +1,35 @@
-from ozon.celery import app
-from get_data.models import User
-from rest_framework.response import Response
-from rest_framework import status
+import requests
 from datetime import datetime, date
 from datetime import timedelta
-import requests
+from rest_framework.response import Response
+from rest_framework import status
+
+from product.models import Order, ProductInOrder, OzonTransactions, Product
+from product.models import OzonMetrics
+from get_data.models import User
+from .services.products import ProductsOzon
+from ozon.celery import app
 
 
 @app.task(bind=True)
-def get_product(*args, **kwargs):
+def create_or_update_products(*args, **kwargs):
     user_id = kwargs.get('user_id')
 
-    from product.models import Product
     user_data = User.objects.get(id=user_id)
-
     ozon_ovner = str(user_data.ozon_id)
-    request_post = requests.post('https://api-seller.ozon.ru/v1/product/list',
-                                 headers={'Client-Id': ozon_ovner, 'Api-Key': user_data.api_key,
-                                          'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
-    request_json = request_post.json()
+    ProductsOzon.update_or_create_products(user_data.api_key, ozon_ovner, user_data)
 
-    if request_json.get('messege', None) == 'Invalid Api-Key, please contact support':
-        return Response(data='Invalid Api-Key, please contact support', status=status.HTTP_400_BAD_REQUEST)
-
-    request_items = request_json.get('result')
-    request_last = request_items['items']
-
-    for product_id_object in request_last:
-        product_request = requests.post('https://api-seller.ozon.ru/v2/product/info',
-                                        json={"product_id": product_id_object['product_id']},
-                                        headers={'Client-Id': ozon_ovner, 'Api-Key': user_data.api_key,
-                                                 'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
-        product_json_result = product_request.json()
-        product_json = product_json_result['result']
-
-        ozon_id = product_json['id']
-        preview = product_json['primary_image']
-
-        if product_json['marketing_price'] != 0.0 or product_json['marketing_price'] is not None:
-            marketing_price = product_json['marketing_price']
-        else:
-            marketing_price = product_json['price']
-
-        sources = product_json['sources']
-
-        for source in sources:
-            sku = source['sku']
-
-        name = product_json['name']
-        stocks = product_json['stocks']
-
-        coming = stocks['coming']  # Поставки
-        balance = stocks['present']  # Остатки товара
-        reserved = stocks['reserved']  # Зарезервировано
-
-        return_query = requests.post('https://api-seller.ozon.ru/v2/returns/company/fbs',
-                                     json={"filter": {"product_name": "string"}},
-                                     headers={'Client-Id': ozon_ovner,
-                                              'Api-Key': user_data.api_key,
-                                              'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
-
-        try:
-            return_query_result = return_query['result']
-            return_product = return_query_result['count']  # кол-во возвращенных товаров
-        except TypeError:
-            return_product = 0  # кол-во возвращенных товаров
-
-        go_to_warehouse = return_product + coming  # в пути на склад (поставки + возвращенные товары)
-        ozon_id = int(ozon_id)
-
-        Product.objects.create_product(preview=preview, ozon_product_id=ozon_id, sku=sku, name=name,
-                                       stock_balance=balance, reserved=reserved, way_to_warehous=go_to_warehouse,
-                                       marketing_price=marketing_price, user_id=user_data)
 
 
 @app.task(bind=True)
 def get_order(*args, **kwargs):
     user_id = kwargs.get('user_id')
-    from product.models import Order, ProductInOrder, OzonTransactions, Product
+    
 
     user_data = User.objects.get(id=user_id)
     ozon_ovner = str(user_data.ozon_id)
 
-    year = datetime.now().year
-    month = datetime.now().month
-    day = datetime.now().day
-
-    if day < 10:
-        date_to = f"{year}-{month}-0{day}T00:00:00Z"
-    else:
-        date_to = f"{year}-{month}-{day}T23:30:00Z"
-
+    date_to = datetime.now().strftime("%Y-%m-%dT23:59:59Z")
     request_post = requests.post('https://api-seller.ozon.ru/v2/posting/fbo/list',
                                  json={"dir": "asc",
                                        "filter": {"since": "2021-02-01T00:00:00Z", "to": date_to},
@@ -216,20 +155,12 @@ def get_order(*args, **kwargs):
 def get_ozon_transaction(*args, **kwargs):
 
     user_id = kwargs.get('user_id')
-    from product.models import OzonTransactions, Order, ProductInOrder
+    
 
     user_data = User.objects.get(id=user_id)
     ozon_ovner = str(user_data.ozon_id)
 
-    year = datetime.now().year
-    month = datetime.now().month
-    day = datetime.now().day
-
-    if day < 10:
-        date_to = f"{year}-{month}-0{day}T00:00:00Z"
-    else:
-        date_to = f"{year}-{month}-{day}T23:30:00Z"
-
+    date_to = datetime.now().strftime("%Y-%m-%dT23:59:59Z")
     request_post = requests.post('https://api-seller.ozon.ru/v3/finance/transaction/list',
                                  json={
                                         "filter": {
@@ -248,9 +179,7 @@ def get_ozon_transaction(*args, **kwargs):
     request_json = request_post.json()
     if request_json.get('messege', None) == 'Invalid Api-Key, please contact support':
         return Response(data='Invalid Api-Key, please contact support', status=status.HTTP_400_BAD_REQUEST)
-
-    request_items = request_json.get('result')
-    operations = request_items['operations']
+    operations = request_json.get('result').get('operations')
 
     for operation in operations:
 
@@ -310,8 +239,6 @@ def get_ozon_transaction(*args, **kwargs):
 @app.task(bind=True)
 def update_product_order(*args, **kwargs):
 
-    from product.models import Product, Order, ProductInOrder
-    from get_data.models import User
 
     user_data = User.objects.filter(api_key__isnull=False)
 
@@ -540,8 +467,6 @@ def update_product_order(*args, **kwargs):
 @app.task(bind=True)
 def found_new_ozon_transaction(*args, **kwargs):
 
-    from product.models import OzonTransactions, Order, ProductInOrder
-    from get_data.models import User
 
     user_data = User.objects.filter(api_key__isnull=False)
 
@@ -650,7 +575,7 @@ def found_new_ozon_transaction(*args, **kwargs):
 def get_analitic_data(*args, **kwargs):
     user_id = kwargs.get('user_id')
 
-    from product.models import OzonMetrics
+
     user_data = User.objects.get(id=user_id)
     ozon_ovner = str(user_data.ozon_id)
 
@@ -769,7 +694,6 @@ def update_analitics_data(*args, **kwargs):
     user_id = kwargs.get('user_id')
     date = kwargs.get('today')
 
-    from product.models import OzonMetrics
     user_data = User.objects.get(id=user_id)
     ozon_ovner = str(user_data.ozon_id)
 

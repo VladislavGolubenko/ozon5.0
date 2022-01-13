@@ -395,22 +395,22 @@ def warehous_account_function(product, days):
 
     data = {
         'preview': preview,  # Превью
-        'ozon_product_id': ozon_product_id,  # ID
-        'sku': sku,  # Артикул
-        'name': name,  # Название
-        'stock_balance': stock_balance,  # Остатки на складе
-        'orders_by_period': orders_by_period,  # Заказано товарa
-        'orders_speed': orders_speed,  # Скорость заказа
-        'days_for_production': days_for_production,  # Срок производства
-        'reorder_days_of_supply': reorder_days_of_supply,  # Глубина поставки
-        'potencial_proceeds': potencial_proceeds,  # Потенциальная выручка с остатков
-        'product_price': product_price,  # Стоимость товара
-        'stocks_for_days': stocks_for_days,  # Осталось запасов на дней
-        'need_to_order': need_to_order,  # Необходимо заказать (количество для заказа)
-        'stocks_cost_price': stocks_cost_price,  # Себестоимость остатков
-        'reorder_sum': reorder_sum,  # Сумма перезаказа
-        'status_of_product': status_of_product,  # Статус
-        'reorder_date': reorder_date,  # Дата перезаказа
+        'ozon_product_id': ozon_product_id,  # ID +
+        'sku': sku,  # Артикул + 
+        'name': name,  # Название +
+        'stock_balance': stock_balance,  # Остатки на складе +
+        'orders_by_period': orders_by_period,  # Заказано товарa + 
+        'orders_speed': orders_speed,  # Скорость заказа + 
+        'days_for_production': days_for_production,  # Срок производства +
+        'reorder_days_of_supply': reorder_days_of_supply,  # Глубина поставки +
+        'potencial_proceeds': potencial_proceeds,  # Потенциальная выручка с остатков + 
+        'product_price': product_price,  # Стоимость товара + 
+        'stocks_for_days': stocks_for_days,  # Осталось запасов на дней +
+        'need_to_order': need_to_order,  # Необходимо заказать (количество для заказа) + 
+        'stocks_cost_price': stocks_cost_price,  # Себестоимость остатков + 
+        'reorder_sum': reorder_sum,  # Сумма перезаказа + 
+        'status_of_product': status_of_product,  # Статус + 
+        'reorder_date': reorder_date,  # Дата перезаказа +
 
         # Параметр на согласовании:
         # Средняя прибыль единицы товара

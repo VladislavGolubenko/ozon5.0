@@ -30,7 +30,6 @@ class ProductSerializer(serializers.ModelSerializer):
         user_id = self.context['request'].user
         sku = self.context['sku']
 
-
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
@@ -200,4 +199,6 @@ class CompanyDashbordSerializer(serializers.Serializer):
     optional_costs = serializers.IntegerField(write_only=True, help_text="Опциональные расходы")
     goods_sold = serializers.IntegerField(write_only=True, help_text="Товаров продано")
     goods_returne= serializers.IntegerField(write_only=True, help_text="Товаров возвращенно")
+
+
 
