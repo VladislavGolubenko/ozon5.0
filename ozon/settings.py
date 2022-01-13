@@ -91,9 +91,17 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'django_celery_results',
 
-    'product.apps.ProductConfig',
-    'get_data.apps.GetDataConfig',
+    'apps.account',
+    'apps.rate',
+    'apps.marketplace',
+    'apps.payment',
+    'apps.transaction',
     
+    'apps.ozon_transaction',
+    'apps.product',
+    'apps.metric',
+    'apps.order'
+        
 ]
 
 MIDDLEWARE = [
@@ -191,8 +199,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
-STATIC_ROOT = os.path.join(BASE_DIR, "static/")
-STATIC_URL = '/static/'
+
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_URL = "/static/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -211,10 +223,8 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 25
 }
 
-MEDIA_ROOT = BASE_DIR / 'media'
-MEDIA_URL = '/media/'
 
-AUTH_USER_MODEL = "get_data.User"
+AUTH_USER_MODEL = "account.User"
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
@@ -240,3 +250,6 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
+
+
+VERSION_API = 'v1'
