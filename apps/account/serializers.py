@@ -33,7 +33,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
 class MeSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "email", "first_name", "last_name", "patronymic", "role", "date_create",
+        fields = ("id", "avatar", "email", "first_name", "last_name", "patronymic", "role", "date_create",
                   "post_agreement", 'card', "card_year", "card_ovner", 'name_org', 'bank', 'inn',
                   'orgn', 'kpp', 'bank_account', 'correspondent_bank_account', 'bik', 'user_tarif_data')
 
@@ -97,9 +97,22 @@ class UserSerializer(serializers.ModelSerializer):
     # marketplace_id = serializers.IntegerField(write_only=True, required=False)
     # marketplace_name = serializers.CharField(max_length=32, write_only=True, required=False)
 
-
     class Meta:
         model = User#"password",  
-        fields = ("id", "email", "first_name", "last_name", "patronymic", "date_create",
+        fields = ("id", "avatar", "email", "first_name", "last_name", "patronymic", "date_create",
                   "post_agreement", 'card', "card_year", "card_ovner", 'name_org', 'bank', 'inn',
                   'orgn', 'kpp', 'bank_account', 'correspondent_bank_account', 'bik', 'user_tarif_data')
+
+
+class SendResetPasswordEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
+
+class ResetPasswordEmailSerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=True)
+    verify_code = serializers.CharField(max_length=100, required=True)
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={"input_type": "password", "placeholder": "Password"},
+    )
