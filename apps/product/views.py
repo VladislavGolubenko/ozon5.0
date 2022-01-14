@@ -97,7 +97,7 @@ class WarehouseAccountView(APIView):
         Складской учет
     """
 
-    permission_classes = [IsSubscription]
+    #permission_classes = [IsSubscription]
 
     def post(self, request, days):
 
@@ -110,7 +110,7 @@ class WarehouseAccountView(APIView):
         
         # print(request.user.id)
         
-        products = Product.objects.filter(user_id=id_of_user)
+        products = Product.objects.filter(user_id=id_user)
         datas = []
 
         for product in products:
@@ -118,7 +118,7 @@ class WarehouseAccountView(APIView):
             data = warehous_account_function(product=product, days=days)
 
             datas.append(data)
-
+        print(datas)
         paginator = LimitOffsetPagination()
         result_page = paginator.paginate_queryset(datas, request)
 

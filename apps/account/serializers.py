@@ -2,7 +2,6 @@ import imp
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
 from .models import User
-from .tasks import create_or_update_products, get_order, get_ozon_transaction
 from ..metric.tasks import get_analitic_data
 from datetime import datetime, date
 from datetime import timedelta
@@ -12,22 +11,22 @@ from ..transaction.models import Transaction
 from ..marketplace.models import Marketplace
 
 
-class RegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(required=False)
-    email = serializers.EmailField(required=False)
+# class RegistrationSerializer(serializers.ModelSerializer):
+#     password = serializers.CharField(required=False)
+#     email = serializers.EmailField(required=False)
 
-    def create(self, validated_data):
-        print(User.objects.filter(email=validated_data.get("email")).first() is not None)
-        if User.objects.filter(email=validated_data.get("email")).first() is not None:
-            raise ValidationError(detail="user_is_exist")
-        user = User(**validated_data)
-        password = validated_data.get("password", None)
-        user.set_password(password)
-        user.save()
-        return user
-    class Meta:
-        model = User
-        fields = ("email", "password")
+#     def create(self, validated_data):
+#         print(User.objects.filter(email=validated_data.get("email")).first() is not None)
+#         if User.objects.filter(email=validated_data.get("email")).first() is not None:
+#             raise ValidationError(detail="user_is_exist")
+#         user = User(**validated_data)
+#         password = validated_data.get("password", None)
+#         user.set_password(password)
+#         user.save()
+#         return user
+#     class Meta:
+#         model = User
+#         fields = ("email", "password")
 
 
 class MeSerializer(serializers.ModelSerializer):
@@ -61,6 +60,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = User(**validated_data)
+        print(validated_data.get("password", None))
         password = validated_data.get("password", None)
         user.set_password(password)
         user.save()
@@ -100,6 +100,6 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User#"password",  
-        fields = ("id", "email", "first_name", "last_name", "patronymic", "date_create",
+        fields = ("id", "email", "password", "first_name", "last_name", "patronymic", "date_create",
                   "post_agreement", 'card', "card_year", "card_ovner", 'name_org', 'bank', 'inn',
                   'orgn', 'kpp', 'bank_account', 'correspondent_bank_account', 'bik', 'user_tarif_data')

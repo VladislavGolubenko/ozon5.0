@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from .models import *
-
+from ..ozon_transaction.models import OzonTransactions
 
 def company_products_function(user_id, date):
     """
@@ -353,7 +353,8 @@ def warehous_account_function(product, days):
 
     reorder_days_of_supply = product.reorder_days_of_supply  # Глубина поставки
     potencial_proceeds = product.marketing_price * product.stock_balance  # Потенциальная выручка остатков
-
+    print(product.stock_balance)
+    print(product.marketing_price)
     if product.summ_price is not None:
         product_price = product.summ_price  # Стоимость товара
     elif product.unit_price and product.additional_price and product.logistics_price is not None:

@@ -24,13 +24,6 @@ class UserAdmin(admin.ModelAdmin):
         (None, {
             'fields': ('first_name', 'last_name', 'patronymic', 'post_agreement', 'is_staff', 'is_active', 'marketplace_data')
         }),
-
-        ('Данные OZON', {
-            'classes': ('collapse',),
-            'fields': (
-                'ozon_id', 'api_key'),
-        }),
-
         ('Данные для оплаты', {
             'classes': ('collapse',),
             'fields': ('card', 'card_year', 'card_ovner', 'name_org', 'bank', 'inn', 'orgn', 'kpp', 'bank_account',

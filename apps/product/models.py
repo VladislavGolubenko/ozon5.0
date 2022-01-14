@@ -3,7 +3,7 @@ from ..account.models import User
 from django.db.models.signals import post_save, pre_save
 from datetime import datetime, date
 from datetime import timedelta
-
+from ..order.models import Order 
 
 class ProductManager(models.Manager):
     def create_product(self, preview, ozon_product_id, sku, name, stock_balance, way_to_warehous, marketing_price,
@@ -61,7 +61,7 @@ class Product(models.Model):
     @property
     def order_for_thirty_days(self):
         date_sort = datetime.now() - timedelta(days=30)
-        orders =None##Order.objects.filter(date_of_order__gte=date_sort, user_id=self.user_id)
+        orders = Order.objects.filter(date_of_order__gte=date_sort, user_id=self.user_id)
         thirty_days = []
         for order in orders:
 

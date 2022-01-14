@@ -17,7 +17,7 @@ class Marketplace(models.Model):
     ]
     
     marketplace_name = models.CharField(verbose_name="Название маркетплейса", max_length=100)
-    marketplace_type = models.CharField(verbose_name="Тип маркетплейса",  blank=True, null=True, max_length=100)
+    marketplace_type = models.CharField(verbose_name="Тип маркетплейса",  default=OZON, max_length=100)
     marketplace_id = models.IntegerField(verbose_name="ID пользователя маркетплейса")
     api_key = models.CharField(verbose_name="API ключ", max_length=500)
     valid = models.BooleanField(verbose_name="Активный", default=False)

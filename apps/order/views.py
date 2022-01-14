@@ -17,7 +17,7 @@ class OrderList(ListAPIView):
         Вывод списка заказов
     """
 
-    permission_classes = [IsSubscription]
+    #permission_classes = [IsSubscription]
 
     serializer_class = OrderSerializer
     pagination_class = LimitOffsetPagination

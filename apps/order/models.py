@@ -1,6 +1,11 @@
 from django.db import models
-from ..product.models import ProductInOrder
+#from ..product.models import ProductInOrder
 from ..ozon_transaction.models import OzonTransactions
+from django.apps import apps
+
+
+# ProductInOrder = apps.get_model('ProductInOrder')
+
 
 class OrderManager(models.Manager):
     def create_order(self, in_process_at, user_id, status, date_of_order,
@@ -31,10 +36,10 @@ class Order(models.Model):
 
     creating_date = models.DateField(auto_now_add=True, blank=True, null=True)
 
-    @property
-    def get_product_in_order(self):
-        products = ProductInOrder.objects.filter(order_id=self.pk)
-        return products
+    # @property
+    # def get_product_in_order(self):
+    #     products = ProductInOrder.objects.filter(order_id=self.pk)
+    #     return products
 
     def get_summ_comission(self):
         comissions = OzonTransactions.objects.filter(posting_number=self.posting_number)
