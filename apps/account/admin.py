@@ -22,7 +22,7 @@ class UserAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('first_name', 'last_name', 'patronymic', 'post_agreement', 'is_staff', 'is_active')
+            'fields': ('first_name', 'last_name', 'patronymic', 'post_agreement', 'is_staff', 'is_active', 'marketplace_data')
         }),
 
         ('Данные OZON', {

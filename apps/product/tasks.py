@@ -4,16 +4,15 @@ from datetime import timedelta
 from rest_framework.response import Response
 from rest_framework import status
 
-from product.models import Order, ProductInOrder, OzonTransactions, Product
-from product.models import OzonMetrics
+from .models import ProductInOrder, Product
+#from product.models import OzonMetrics
 from ..account.models import User
 from ozon.celery import app
-
+from ..ozon_transaction.models import OzonTransactions
+from ..order.models import Order
 
 @app.task(bind=True, name="update_product_order")
 def update_product_order(*args, **kwargs):
-
-
     user_data = User.objects.filter(api_key__isnull=False)
 
     for data in user_data:

@@ -107,9 +107,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     marketplace_data = models.ManyToManyField("marketplace.Marketplace", related_name="user_marketplace", blank=True, null=True)
 
-    ozon_id = models.IntegerField(verbose_name="ID пользователя OZON", default=0, blank=True, null=True)
-    api_key = models.CharField(max_length=500, verbose_name="API ключ OZON", blank=True, null=True)
-
     name_org = models.CharField(max_length=256, null=True, blank=True, verbose_name="Название организации")
     inn = models.CharField(max_length=12, null=True, blank=True, verbose_name="ИНН")
     orgn = models.CharField(max_length=12, null=True, blank=True, verbose_name="ОРГН")

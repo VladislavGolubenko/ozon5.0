@@ -1,3 +1,4 @@
+from statistics import mode
 from django.db import models
 
 class MarketplaceManager(models.Manager):
@@ -11,17 +12,18 @@ class MarketplaceManager(models.Manager):
 class Marketplace(models.Model):
 
     OZON = "ozon"
-
     MARKETPLASE = [
         (OZON, 'ozon'),
     ]
-
+    
     marketplace_name = models.CharField(verbose_name="Название маркетплейса", max_length=100)
-    marketplace_id = models.IntegerField(verbose_name="ID пользователя маркетплейса", default=0, blank=True, null=True)
-    api_key = models.CharField(verbose_name="API ключ", max_length=500, blank=True, null=True)
-    last_validations_date = models.DateTimeField(verbose_name="Дата последней проверки", blank=True, null=True)
-
-    objects = MarketplaceManager()
+    marketplace_type = models.CharField(verbose_name="Тип маркетплейса",  blank=True, null=True, max_length=100)
+    marketplace_id = models.IntegerField(verbose_name="ID пользователя маркетплейса")
+    api_key = models.CharField(verbose_name="API ключ", max_length=500)
+    valid = models.BooleanField(verbose_name="Активный", default=False)
+    # last_validations_date = models.DateTimeField(verbose_name="Дата последней проверки", blank=True, null=True)
+    user = models.ForeignKey("account.User", on_delete=models.CASCADE, null=True, blank=True, verbose_name="Пользователь")
+    #objects = MarketplaceManager()
 
     class Meta:
         verbose_name = "маркетплейс"
@@ -29,6 +31,6 @@ class Marketplace(models.Model):
         ordering = ("id",)
 
     def __str__(self):
-        return self.id
+        return self.marketplace_name
 
 

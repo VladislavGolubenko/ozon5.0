@@ -29,6 +29,15 @@ class RegistrationSerializer(serializers.ModelSerializer):
         model = User
         fields = ("email", "password")
 
+
+class MeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("id", "email", "first_name", "last_name", "patronymic", "role", "date_create",
+                  "post_agreement", 'card', "card_year", "card_ovner", 'name_org', 'bank', 'inn',
+                  'orgn', 'kpp', 'bank_account', 'correspondent_bank_account', 'bik', 'user_tarif_data')
+
+
 class UserSerializer(serializers.ModelSerializer):
 
     """
@@ -47,8 +56,8 @@ class UserSerializer(serializers.ModelSerializer):
     Для изменения данны
     """
 
-    password = serializers.CharField(required=False)
-    email = serializers.EmailField(required=False)
+    #password = serializers.CharField(required=False)
+    #email = serializers.EmailField(required=False)
 
     def create(self, validated_data):
         user = User(**validated_data)
@@ -57,72 +66,40 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-    def update(self, instance, validated_data):
-        user_id = self.context['request'].user
+    # def update(self, instance, validated_data):
+    #     user_id = self.context['request'].user
+    #     if validated_data.get("new_password") is not None:
+    #         for attr, value in validated_data.items():
+    #             setattr(instance, attr, value)
 
-        if validated_data.get("api_key") is not None:
-            marketplace_id = str(validated_data['marketplace_id'])
-            api_key = validated_data['api_key']
-            marketplace_name = validated_data['marketplace_name']
-            pk = self.context['pk']
-            user = User.objects.get(pk=pk)
+    #         password = validated_data.get("new_password", None)
+    #         instance.set_password(password)
 
-            if marketplace_name == "ozon":
-                api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list',  headers={'Client-Id': marketplace_id,
-                                                                                                      'Api-Key': api_key,
-                                                                                                      'Content-Type': 'application/json',
-                                                                                                      'Host': 'api-seller.ozon.ru'})
-                if api_key_isset.status_code == 200:
-                    last_validations_date = datetime.now()
-                    marketplace = Marketplace.objects.create_marketplace(marketplace_name=marketplace_name, marketplace_id=marketplace_id,
-                                                                         api_key=api_key, last_validations_date=last_validations_date)
+    #         instance.save()
+    #         return instance
 
-                    user.marketplace_data.add(marketplace.pk)
+    #     else:
+    #         user = User.objects.get(id=user_id.id)
 
-                    # instance.save()
-                    # get_product.delay(user_id=user_id.id)
-                    # get_order.delay(user_id=user_id.id)
-                    # get_ozon_transaction.delay(user_id=user_id.id)
-                    # get_analitic_data.delay(user_id=user_id.id)
-                    return marketplace
-                else:
-                    raise ValidationError(
-                        detail={"Invalid Api-Key, please contact support": "404"}
-                    )
+    #         for attr, value in validated_data.items():
+    #             setattr(instance, attr, value)
 
-        elif validated_data.get("new_password") is not None:
-            for attr, value in validated_data.items():
-                setattr(instance, attr, value)
+    #         password = validated_data.get("password", None)
 
-            password = validated_data.get("new_password", None)
-            instance.set_password(password)
-
-            instance.save()
-            return instance
-
-        else:
-            user = User.objects.get(id=user_id.id)
-
-            for attr, value in validated_data.items():
-                setattr(instance, attr, value)
-
-            password = validated_data.get("password", None)
-
-            if user.password == password:
-                instance.save()
-                return instance
-            elif password == None:
-                instance.save()
-                return instance
-
-    new_password = serializers.CharField(max_length=32, write_only=True, required=False)
-    marketplace_id = serializers.IntegerField(write_only=True, required=False)
-    marketplace_name = serializers.CharField(max_length=32, write_only=True, required=False)
+    #         if user.password == password:
+    #             instance.save()
+    #             return instance
+    #         elif password == None:
+    #             instance.save()
+    #             return instance
+    #     return instance
+    # new_password = serializers.CharField(max_length=32, write_only=True, required=False)
+    # marketplace_id = serializers.IntegerField(write_only=True, required=False)
+    # marketplace_name = serializers.CharField(max_length=32, write_only=True, required=False)
 
 
     class Meta:
-        model = User
-        fields = ("id", "email", "password", "first_name", "last_name", "patronymic", "role", "date_create",
-                  "post_agreement", 'card', "card_year", "card_ovner", "ozon_id", "api_key", 'name_org', 'bank', 'inn',
-                  'orgn', 'kpp', 'bank_account', 'correspondent_bank_account', 'bik', 'new_password', 'user_tarif_data',
-                  'return_status', 'marketplace_id', 'marketplace_name')
+        model = User#"password",  
+        fields = ("id", "email", "first_name", "last_name", "patronymic", "date_create",
+                  "post_agreement", 'card', "card_year", "card_ovner", 'name_org', 'bank', 'inn',
+                  'orgn', 'kpp', 'bank_account', 'correspondent_bank_account', 'bik', 'user_tarif_data')

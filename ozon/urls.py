@@ -13,7 +13,7 @@ urlpatterns = [
     path(f"api/{settings.VERSION_API}/", include('apps.rate.urls')),
     path(f"api/{settings.VERSION_API}/", include('apps.transaction.urls')),
     #path(f"api/{settings.VERSION_API}/", include('apps.payment.urls')), # Такого файла нет
-    #path(f"api/{settings.VERSION_API}/", include('apps.marketplace.urls')), # Такого файла нет
+    path(f"api/{settings.VERSION_API}/", include('apps.marketplace.urls')), # Такого файла нет
 ]
 #Ссылки на статику и медиа файлы
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
