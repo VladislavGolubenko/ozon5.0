@@ -77,6 +77,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         unique=True,
         blank=False,
     )
+    avatar = models.ImageField(
+        upload_to='photos/%y/%m/%d/',
+        max_length=500,
+        null=True, blank=True
+    )
     first_name = models.CharField(
         max_length=100, blank=True, null=True, verbose_name="Имя"
     )
@@ -181,3 +186,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+
+class UserResetPasswordCode(models.Model):
+    user = models.ForeignKey("User", on_delete=models.CASCADE)
+    verify_code = models.CharField(max_length=100)

@@ -254,4 +254,13 @@ SIMPLE_JWT = {
 
 VERSION_API = 'v1'
 
+URL_FRONT = 'http://176.119.147.237'
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.yandex.ru"
+EMAIL_USE_SSL = True
+EMAIL_PORT = 465
+EMAIL_HOST_USER = "vladislav.golubenko99@yandex.ru"
+EMAIL_HOST_PASSWORD = "jfqoueroimfghqlx"
+
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
