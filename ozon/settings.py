@@ -154,9 +154,9 @@ WSGI_APPLICATION = 'ozon.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'ozon',
-        'USER': 'postgres',
-        'PASSWORD': '123456',
+        'NAME': 'ozon2',
+        'USER': 'admin',
+        'PASSWORD': 'admin',
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
