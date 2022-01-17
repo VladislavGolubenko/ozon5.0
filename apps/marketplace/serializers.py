@@ -7,9 +7,10 @@ from .tasks import upload_products
 from ..account.tasks import get_order, get_ozon_transaction
 
 class CreateMarketplaceSerializer(serializers.ModelSerializer):
+    valid = serializers.BooleanField(read_only=True)
     class Meta:
         model = Marketplace
-        fields = ("id", "marketplace_name", "marketplace_id", "api_key")
+        fields = ("id", "marketplace_name", "marketplace_id", "api_key", "valid")
     
     def create(self, validated_data):
         print(validated_data)
