@@ -12,11 +12,11 @@ app.conf.timezone = 'Europe/Moscow'
 
 
 app.conf.beat_schedule = {
-    # 'update_product_order': {
-    #     'task': 'update_product_order',
-    #     'schedule': crontab(minute=50, hour=11), #crontab(minute=17, hour=17),
-    #     # 'schedule': 30,
-    # },
+    'update_product_order': {
+        'task': 'update_product_order',
+        'schedule': 15,#crontab(minute=50, hour=11), #crontab(minute=17, hour=17),
+        # 'schedule': 30,
+    },
 
     # 'found_new_ozon_transaction': {
     #     'task': 'found_new_ozon_transaction',

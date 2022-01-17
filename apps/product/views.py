@@ -118,7 +118,7 @@ class WarehouseAccountView(APIView):
             data = warehous_account_function(product=product, days=days)
 
             datas.append(data)
-        print(datas)
+        #print(datas)
         paginator = LimitOffsetPagination()
         result_page = paginator.paginate_queryset(datas, request)
 
