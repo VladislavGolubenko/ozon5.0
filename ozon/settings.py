@@ -13,7 +13,9 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 import os
+from dotenv import load_dotenv  
 
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -27,12 +29,14 @@ SECRET_KEY = 'django-insecure-7a9*1g#2bozpx-dkr=3%=65njpvl@2zyxppiio3wye-!q@&t@@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [ '*'
-    # '192.168.0.37',
-    # '0.0.0.0',
-    # 'localhost',
-    # '127.0.0.1',
-]
+
+def get_list(text):
+    return [item.strip() for item in text.split(",")]
+
+
+ALLOWED_HOSTS = get_list(os.getenv('ALLOWED_HOSTS_IP', '0.0.0.0'))
+ALLOWED_HOSTS += get_list(os.getenv('ALLOWED_HOSTS_DOMAIN', None))
+
 
 CELERY_TIMEZONE = "Europe/Moscow"
 CELERY_TASK_TRACK_STARTED = True
@@ -153,14 +157,15 @@ WSGI_APPLICATION = 'ozon.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'ozon2',
-        'USER': 'admin',
-        'PASSWORD': 'admin',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-    }
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('POSTGRES_DB'),
+        'USER': os.getenv('POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'HOST': 'localhost',
+        'PORT': 5432,
+    },
 }
+
 
 
 # Password validation
@@ -254,13 +259,21 @@ SIMPLE_JWT = {
 
 VERSION_API = 'v1'
 
-URL_FRONT = 'http://176.119.147.237'
+URL_FRONT = os.getenv("DOMAIN")
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.yandex.ru"
+"""
+////////////////////
+Настройки почтовика
+////////////////////
+"""
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.getenv('EMAIL_SMTP_SERVER')
+EMAIL_PORT = os.getenv('EMAIL_SMTP_PORT')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
-EMAIL_PORT = 465
-EMAIL_HOST_USER = "vladislav.golubenko99@yandex.ru"
-EMAIL_HOST_PASSWORD = "jfqoueroimfghqlx"
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240

@@ -1,6 +1,6 @@
 
-# Created by https://www.toptal.com/developers/gitignore/api/django,visualstudiocode,visualstudio,venv,virtualenv,pycharm,pycharm+iml,pycharm+all,redis
-# Edit at https://www.toptal.com/developers/gitignore?templates=django,visualstudiocode,visualstudio,venv,virtualenv,pycharm,pycharm+iml,pycharm+all,redis
+# Created by https://www.toptal.com/developers/gitignore/api/django,visualstudio,visualstudiocode,pycharm,pycharm+iml,pycharm+all,redis,venv,virtualenv
+# Edit at https://www.toptal.com/developers/gitignore?templates=django,visualstudio,visualstudiocode,pycharm,pycharm+iml,pycharm+all,redis,venv,virtualenv
 
 ### Django ###
 *.log
@@ -825,4 +825,4 @@ FodyWeavers.xsd
 ### VisualStudio Patch ###
 # Additional files built by Visual Studio
 
-# End of https://www.toptal.com/developers/gitignore/api/django,visualstudiocode,visualstudio,venv,virtualenv,pycharm,pycharm+iml,pycharm+all,redis
+# End of https://www.toptal.com/developers/gitignore/api/django,visualstudio,visualstudiocode,pycharm,pycharm+iml,pycharm+all,redis,venv,virtualenv
