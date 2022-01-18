@@ -3,8 +3,9 @@ from rest_framework import serializers
 from .models import Marketplace
 from ..account.models import User
 import requests
-from .tasks import upload_products
-from ..account.tasks import get_order, get_ozon_transaction
+from .tasks import upload_products, upload_orders, upload_transactions, upload_stocks
+from ..account.services.orders import OrdersOzon 
+
 
 class CreateMarketplaceSerializer(serializers.ModelSerializer):
     valid = serializers.BooleanField(read_only=True)
@@ -29,21 +30,27 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
                                                                                                 'Host': 'api-seller.ozon.ru'})
         if api_key_isset.status_code == 200:
             valid = True
-            upload_products.delay(
+            # upload_products.delay(
+            #     api_key=api_key,
+            #     client_id=marketplace_id,
+            #     user_id=user.pk
+            #     )
+            # upload_orders.delay(
+            #     api_key=api_key,
+            #     client_id=marketplace_id,
+            #     user_id=user.pk
+            #     )
+            # upload_transactions.delay(
+            #     api_key=api_key,
+            #     client_id=marketplace_id,
+            #     user_id=user.pk
+            #     )
+            upload_stocks.delay(
                 api_key=api_key,
                 client_id=marketplace_id,
                 user_id=user.pk
                 )
-            get_order.delay(
-                api_key=api_key,
-                client_id=marketplace_id,
-                user_id=user.pk
-                )
-            get_ozon_transaction.delay(
-                api_key=api_key,
-                client_id=marketplace_id,
-                user_id=user.pk
-                )
+            
         else:
             valid = False
 
@@ -71,17 +78,22 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
                                                                                                 'Content-Type': 'application/json',
                                                                                                 'Host': 'api-seller.ozon.ru'})
         if api_key_isset.status_code == 200:
-            upload_products.delay(
-                api_key=api_key,
-                client_id=marketplace_id,
-                user_id=user.pk
-                )
-            get_order.delay(
-                api_key=api_key,
-                client_id=marketplace_id,
-                user_id=user.pk
-                )
-            get_ozon_transaction.delay(
+            # upload_products.delay(
+            #     api_key=api_key,
+            #     client_id=marketplace_id,
+            #     user_id=user.pk
+            #     )
+            # upload_orders.delay(
+            #     api_key=api_key,
+            #     client_id=marketplace_id,
+            #     user_id=user.pk
+            #     )
+            # upload_transactions.delay(
+            #     api_key=api_key,
+            #     client_id=marketplace_id,
+            #     user_id=user.pk
+            #     )
+            upload_stocks.delay(
                 api_key=api_key,
                 client_id=marketplace_id,
                 user_id=user.pk

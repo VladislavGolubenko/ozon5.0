@@ -41,9 +41,11 @@ def update_product_order(*args, **kwargs):
 
             # Заказы
             date_sort = datetime.now() - timedelta(days=1)
-
+            
             date_from = date_sort.strftime("%Y-%m-%dT00:00:00Z")
             date_to = datetime.now().strftime("%Y-%m-%dT23:59:59Z")
+            print(date_from)
+            print(date_to)
             # if yesterday < 10:
             #     date_from = f"{year}-{month}-0{yesterday}T00:00:00Z"
             # else:
@@ -159,7 +161,7 @@ def update_product_order(*args, **kwargs):
                             summ_price = None
 
                         ProductInOrder.objects.create_product_in_order(preview=preview,
-                                                                    user_id=user_data, sku=sku, name=name,
+                                                                    user_id=data, sku=sku, name=name,
                                                                     order_id=order_save,
                                                                     quantity=quantity, offer_id=offer_id, price=price,
                                                                     price_f=price_f, comission_amount=comission_amount,
@@ -251,106 +253,95 @@ def update_product_order(*args, **kwargs):
 def found_new_ozon_transaction(*args, **kwargs):
 
 
-    user_data = User.objects.filter(api_key__isnull=False)
+    user_data = User.objects.all()
+    for data in user_data:
+        for marketplace_data in data.marketplace_data.all():
+            ozon_ovner = str(marketplace_data.marketplace_id)
+            api_key = marketplace_data.api_key
+        
 
-    for user_data in user_data:
+            date_sort = datetime.now() - timedelta(days=1)
 
-        ozon_ovner = str(user_data.ozon_id)
+            date_from = date_sort.strftime("%Y-%m-%dT00:00:00Z")
+            date_to = datetime.now().strftime("%Y-%m-%dT23:59:59Z")
 
-        date_sort = datetime.now() - timedelta(days=1)
+            request_post = requests.post('https://api-seller.ozon.ru/v3/finance/transaction/list',
+                                        json={
+                                                "filter": {
+                                                    "date": {
+                                                        "from": date_from,
+                                                        "to": date_to
+                                                    },
 
-        year = datetime.now().year
-        month = datetime.now().month
-        day = datetime.now().day
-        yesterday = date_sort.day
-
-        if yesterday < 10:
-            date_from = f"{year}-{month}-0{yesterday}T00:00:00Z"
-        else:
-            date_from = f"{year}-{month}-{yesterday}T00:00:00Z"
-
-        if day < 10:
-            date_to = f"{year}-{month}-0{day}T23:30:00Z"
-        else:
-            date_to = f"{year}-{month}-{day}T23:30:00Z"
-
-        request_post = requests.post('https://api-seller.ozon.ru/v3/finance/transaction/list',
-                                     json={
-                                            "filter": {
-                                                "date": {
-                                                    "from": date_from,
-                                                    "to": date_to
+                                                    "transaction_type": "all"
                                                 },
-
-                                                "transaction_type": "all"
+                                                "page": 1,
+                                                "page_size": 10000
                                             },
-                                            "page": 1,
-                                            "page_size": 10000
-                                        },
-                                     headers={'Client-Id': ozon_ovner, 'Api-Key': user_data.api_key,
-                                              'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
-        request_json = request_post.json()
-        if request_json.get('messege', None) == 'Invalid Api-Key, please contact support':
-            return Response(data='Invalid Api-Key, please contact support', status=status.HTTP_400_BAD_REQUEST)
+                                        headers={'Client-Id': ozon_ovner, 'Api-Key': api_key,
+                                                'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
+            request_json = request_post.json()
+            if request_json.get('messege', None) == 'Invalid Api-Key, please contact support':
+                return Response(data='Invalid Api-Key, please contact support', status=status.HTTP_400_BAD_REQUEST)
 
-        request_items = request_json.get('result')
-        operations = request_items['operations']
+            request_items = request_json.get('result')
+            operations = request_items['operations']
 
-        for operation in operations:
+            for operation in operations:
 
-            operation_id = operation['operation_id']
-            operation_type = operation['operation_type']
-            operation_date = operation['operation_date']
-            operation_type_name = operation['operation_type_name']
-            accruals_for_sale = operation['accruals_for_sale']
-            sale_commission = operation['sale_commission']
-            amount = operation['amount']
-            finance_type = operation['type']
+                operation_id = operation['operation_id']
+                operation_type = operation['operation_type']
+                operation_date = operation['operation_date']
+                operation_type_name = operation['operation_type_name']
+                accruals_for_sale = operation['accruals_for_sale']
+                sale_commission = operation['sale_commission']
+                amount = operation['amount']
+                finance_type = operation['type']
 
-            posting = operation['posting']
-            posting_number = posting['posting_number']
+                posting = operation['posting']
+                posting_number = posting['posting_number']
 
-            items = operation['items']
-            services = operation['services']
+                items = operation['items']
+                services = operation['services']
 
-            services_array = []
-            for service in services:
-                marketplace_services = (
-                    'MarketplaceServiceItemFulﬁllment',
-                    'MarketplaceServiceItemDirectFlowTrans',
-                    'MarketplaceServiceItemReturnFlowTrans',
-                    'MarketplaceServiceItemDelivToCustomer',
-                    'MarketplaceServiceItemReturnNotDelivToCustomer',
-                    'MarketplaceServiceItemReturnPartGoodsCustomer',
-                    'MarketplaceServiceItemReturnAfterDelivToCustomer',
-                    'MarketplaceServiceItemDropoffFf',
-                    'MarketplaceServiceItemDropoffPvz',
-                    'MarketplaceServiceItemDropoffSc',
-                )
+                services_array = []
+                for service in services:
+                    marketplace_services = (
+                        'MarketplaceServiceItemFulﬁllment',
+                        'MarketplaceServiceItemDirectFlowTrans',
+                        'MarketplaceServiceItemReturnFlowTrans',
+                        'MarketplaceServiceItemDelivToCustomer',
+                        'MarketplaceServiceItemReturnNotDelivToCustomer',
+                        'MarketplaceServiceItemReturnPartGoodsCustomer',
+                        'MarketplaceServiceItemReturnAfterDelivToCustomer',
+                        'MarketplaceServiceItemDropoffFf',
+                        'MarketplaceServiceItemDropoffPvz',
+                        'MarketplaceServiceItemDropoffSc',
+                    )
 
-                if service['name'] in marketplace_services:
-                    dict_services = {
-                        'service_name': service['name'],
-                        'price': service['price']
-                    }
-                    services_array.append(dict_services)
+                    if service['name'] in marketplace_services:
+                        dict_services = {
+                            'service_name': service['name'],
+                            'price': service['price']
+                        }
+                        services_array.append(dict_services)
 
-            transaction_save = OzonTransactions.objects.create_ozon_transaction(user_id=user_data, operation_id=operation_id,
-                                                                                operation_type=operation_type,
-                                                                                operation_date=operation_date,
-                                                                                operation_type_name=operation_type_name,
-                                                                                accruals_for_sale=accruals_for_sale,
-                                                                                sale_commission=sale_commission,
-                                                                                amount=amount, type=finance_type,
-                                                                                posting_number=posting_number,
-                                                                                services=services_array)
+                transaction_save = OzonTransactions.objects.create_ozon_transaction(user_id=data, operation_id=operation_id,
+                                                                                    operation_type=operation_type,
+                                                                                    operation_date=operation_date,
+                                                                                    operation_type_name=operation_type_name,
+                                                                                    accruals_for_sale=accruals_for_sale,
+                                                                                    sale_commission=sale_commission,
+                                                                                    amount=amount, type=finance_type,
+                                                                                    posting_number=posting_number,
+                                                                                    services=services_array)
 
-            for item in items:
-                sku = item['sku']
+                for item in items:
+                    sku = item['sku']
 
-                order = Order.objects.filter(posting_number=posting_number).first()
-                if order:
-                    product_relation = ProductInOrder.objects.filter(sku=sku, order_id=order.pk).first()
-                    transaction_save.product.add(product_relation.pk)
+                    order = Order.objects.filter(posting_number=posting_number).first()
+                    if order:
+                        product_relation = ProductInOrder.objects.filter(sku=sku, order_id=order.pk).first()
+                        transaction_save.product.add(product_relation.pk)
 
 
