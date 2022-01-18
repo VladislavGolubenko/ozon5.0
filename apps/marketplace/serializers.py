@@ -30,21 +30,21 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
                                                                                                 'Host': 'api-seller.ozon.ru'})
         if api_key_isset.status_code == 200:
             valid = True
-            # upload_products.delay(
-            #     api_key=api_key,
-            #     client_id=marketplace_id,
-            #     user_id=user.pk
-            #     )
-            # upload_orders.delay(
-            #     api_key=api_key,
-            #     client_id=marketplace_id,
-            #     user_id=user.pk
-            #     )
-            # upload_transactions.delay(
-            #     api_key=api_key,
-            #     client_id=marketplace_id,
-            #     user_id=user.pk
-            #     )
+            upload_products.delay(
+                api_key=api_key,
+                client_id=marketplace_id,
+                user_id=user.pk
+                )
+            upload_orders.delay(
+                api_key=api_key,
+                client_id=marketplace_id,
+                user_id=user.pk
+                )
+            upload_transactions.delay(
+                api_key=api_key,
+                client_id=marketplace_id,
+                user_id=user.pk
+                )
             upload_stocks.delay(
                 api_key=api_key,
                 client_id=marketplace_id,
@@ -78,21 +78,21 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
                                                                                                 'Content-Type': 'application/json',
                                                                                                 'Host': 'api-seller.ozon.ru'})
         if api_key_isset.status_code == 200:
-            # upload_products.delay(
-            #     api_key=api_key,
-            #     client_id=marketplace_id,
-            #     user_id=user.pk
-            #     )
-            # upload_orders.delay(
-            #     api_key=api_key,
-            #     client_id=marketplace_id,
-            #     user_id=user.pk
-            #     )
-            # upload_transactions.delay(
-            #     api_key=api_key,
-            #     client_id=marketplace_id,
-            #     user_id=user.pk
-            #     )
+            upload_products.delay(
+                api_key=api_key,
+                client_id=marketplace_id,
+                user_id=user.pk
+                )
+            upload_orders.delay(
+                api_key=api_key,
+                client_id=marketplace_id,
+                user_id=user.pk
+                )
+            upload_transactions.delay(
+                api_key=api_key,
+                client_id=marketplace_id,
+                user_id=user.pk
+                )
             upload_stocks.delay(
                 api_key=api_key,
                 client_id=marketplace_id,
