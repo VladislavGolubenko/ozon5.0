@@ -25,7 +25,6 @@ class OzonMetricsAction(ListAPIView):
     ordering_fields = '__all__'
 
     def get_queryset(self):
-
         """
         При переходе на отображение страницы перед отображением будет должны обновиться (или подтянуться, в случае
         если их нет) аналитические данные озонконкретного пользователя. В дальнейшем обновления данных за это же число
@@ -35,10 +34,10 @@ class OzonMetricsAction(ListAPIView):
         today = datetime.now().date()
         this_day_metrics = OzonMetrics.objects.filter(user_id=self.request.user.pk, creating_date=today)
         #email_query = User.objects.get(id=self.request.user.pk)
-        email = self.request.user.email
+        user_id = self.request.user.pk
         if this_day_metrics.exists():
-            update_analitics_data.delay(email=email, today=today)
+            update_analitics_data.delay(user_id=user_id, today=today)
         else:
-            get_analitic_data.delay(email=email)
+            get_analitic_data.delay(user_id=user_id)
 
         return OzonMetrics.objects.filter(user_id=self.request.user.pk)

@@ -94,50 +94,52 @@ class ProductsOzon:
         """
         products = ProductsOzon.get_products_in_json(api_key, cliend_id)
         for product_json in products:
-            ozon_id = product_json.get('id')
-            preview = product_json.get('primary_image')
+            
+            if product_json.get('visible') is True:
+                ozon_id = product_json.get('id')
+                preview = product_json.get('primary_image')
+                
+                marketing_price = product_json.get('marketing_price') 
+                if (marketing_price == 0.0) or (marketing_price is None) or (marketing_price==''):
+                    marketing_price = product_json['price']
 
-            marketing_price = product_json.get('marketing_price') 
-            if marketing_price == 0.0 or marketing_price is None:
-                marketing_price = product_json['price']
+                sources = product_json.get('sources')
+                sku = None
+                for source in sources:
+                    if source.get("source") == "fbo":
+                        sku = source.get('sku')
 
-            sources = product_json.get('sources')
-            sku = None
-            for source in sources:
-                if source.get("source") == "fbo":
-                    sku = source.get('sku')
+                name = product_json.get('name')
+                stocks = product_json.get('stocks')
 
-            name = product_json.get('name')
-            stocks = product_json.get('stocks')
-
-            coming = stocks.get('coming')  # Поставки
-            balance = stocks.get('present')  # Остатки товара
-            reserved = stocks.get('reserved')  # Зарезервировано
-            go_to_warehouse = ProductsOzon._get_count_product_return(api_key, cliend_id, name) + coming  # в пути на склад (поставки + возвращенные товары)
-            ozon_id = int(ozon_id)
-            product = Product.objects.filter(ozon_product_id=ozon_id).first()
-            if product is not None:
-                #Обновление
-                #product.
-                product.preview=preview
-                product.ozon_product_id=ozon_id
-                product.sku=sku
-                product.name=name
-                product.stock_balance=balance
-                product.reserved=reserved
-                product.way_to_warehous=go_to_warehouse
-                product.marketing_price=marketing_price
-                product.user_id=user
-                product.save()
-            else:
-                Product.objects.create_product(
-                    preview=preview, 
-                    ozon_product_id=ozon_id, 
-                    sku=sku, 
-                    name=name,
-                    stock_balance=balance, 
-                    reserved=reserved, 
-                    way_to_warehous=go_to_warehouse,
-                    marketing_price=marketing_price, 
-                    user_id=user
-                    )
+                coming = stocks.get('coming')  # Поставки
+                balance = stocks.get('present')  # Остатки товара
+                reserved = stocks.get('reserved')  # Зарезервировано
+                go_to_warehouse = ProductsOzon._get_count_product_return(api_key, cliend_id, name) + coming  # в пути на склад (поставки + возвращенные товары)
+                ozon_id = int(ozon_id)
+                product = Product.objects.filter(ozon_product_id=ozon_id).first()
+                if product is not None:
+                    #Обновление
+                    #product.
+                    product.preview=preview
+                    product.ozon_product_id=ozon_id
+                    product.sku=sku
+                    product.name=name
+                    product.stock_balance=balance
+                    product.reserved=reserved
+                    product.way_to_warehous=go_to_warehouse
+                    product.marketing_price=marketing_price
+                    product.user_id=user
+                    product.save()
+                else:
+                    Product.objects.create_product(
+                        preview=preview, 
+                        ozon_product_id=ozon_id, 
+                        sku=sku, 
+                        name=name,
+                        stock_balance=balance, 
+                        reserved=reserved, 
+                        way_to_warehous=go_to_warehouse,
+                        marketing_price=marketing_price, 
+                        user_id=user
+                        )
