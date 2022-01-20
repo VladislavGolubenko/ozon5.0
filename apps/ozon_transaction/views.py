@@ -38,7 +38,7 @@ class ProductDashbordView(APIView):
     serializer_class = OzonTransactionsSerializer
 
     def get(self, request):
-        date = request.GET['date']
+        date = request.GET.get('date')
         date = int(date)
 
         if date is None:
