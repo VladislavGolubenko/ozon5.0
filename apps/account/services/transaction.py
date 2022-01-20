@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from rest_framework.response import Response
 from rest_framework import status
 import requests
@@ -10,12 +10,17 @@ from ...account.models import User
 
 class TransactionOzon:
     def get_total_pages(api_key:str, ozon_id:str):
+        # НУЖНО ИСПОЛЬЗОВАТЬ ДАТУ ПОСЛЕДНЕГО С 00:00:00 что бы подгружать транзакции не все
+        #last_transaction= OzonTransactions.objects.all().order_by("-operation_date").first()
+        #print(f"!!!!!!!! {last_transaction.operation_date}")
+        date_now = datetime.now() - timedelta(days=2)
+        date_from = date_now.strftime(f"%Y-%m-{date_now.day}T00:00:00Z")
         date_to = datetime.now().strftime("%Y-%m-%dT23:59:59Z")
         request_post = requests.post('https://api-seller.ozon.ru/v3/finance/transaction/list',
                                     json={
                                             "filter": {
                                                 "date": {
-                                                    "from": "2021-02-01T00:00:00Z",
+                                                    "from": date_from,
                                                     "to": date_to,
                                                 },
 
