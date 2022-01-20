@@ -30,6 +30,7 @@ from ..marketplace.models import Marketplace
 
 
 class MeSerializer(serializers.ModelSerializer):
+    avatar = serializers.ImageField(use_url=False, allow_null=True, required=False)
     class Meta:
         model = User
         fields = ("id", "avatar", "email", "first_name", "last_name", "patronymic", "role", "date_create",
@@ -54,7 +55,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     Для изменения данны
     """
-
+    avatar = serializers.ImageField(use_url=False, allow_null=True, required=False)
     #password = serializers.CharField(required=False)
     #email = serializers.EmailField(required=False)
 
@@ -99,7 +100,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User#"password",  
-
+        
         fields = ("id", "avatar", "password", "email", "first_name", "last_name", "patronymic", "date_create",
                   "post_agreement", 'card', "card_year", "card_ovner", 'name_org', 'bank', 'inn',
                   'orgn', 'kpp', 'bank_account', 'correspondent_bank_account', 'bik', 'user_tarif_data')
