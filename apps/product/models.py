@@ -5,6 +5,7 @@ from datetime import datetime, date
 from datetime import timedelta
 from ..order.models import Order 
 
+
 class ProductManager(models.Manager):
     def create_product(self, preview, ozon_product_id, sku, name, stock_balance, way_to_warehous, marketing_price,
                        reserved, user_id):

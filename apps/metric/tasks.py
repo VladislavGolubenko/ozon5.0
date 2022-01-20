@@ -13,7 +13,7 @@ def get_analitic_data(*args, **kwargs):
 
 
     user_data = User.objects.get(id=user_id)
-    
+
 
     date_from = datetime.now().strftime("%Y-%m-%dT00:00:00Z")
     date_to = datetime.now().strftime("%Y-%m-%dT23:59:59Z")
@@ -123,7 +123,7 @@ def get_analitic_data(*args, **kwargs):
 def update_analitics_data(*args, **kwargs):
     user_id = kwargs.get("user_id")
     user_data = User.objects.get(id=user_id)
-    
+
     date_from = datetime.now().strftime("%Y-%m-%dT00:00:00Z")
     date_to = datetime.now().strftime("%Y-%m-%dT23:59:59Z")
     for marketplace in user_data.marketplace_data.all():
@@ -218,14 +218,15 @@ def update_analitics_data(*args, **kwargs):
                 date = datetime.now().date() - timedelta(1)
                 metrics_to_update = OzonMetrics.objects.filter(product_id=product_id, creating_date=date)
 
-            metrics_to_update.update(user_id=user_data, product_id=product_id, product_name=product_name,
-                                    hits_view_search=hits_view_search, hits_view_pdp=hits_view_pdp, hits_view=hits_view,
-                                    hits_tocart_search=hits_tocart_search, hits_tocart_pdp=hits_tocart_pdp,
-                                    hits_tocart=hits_tocart, session_view_search=session_view_search,
-                                    session_view_pdp=session_view_pdp, session_view=session_view,
-                                    conv_tocart_search=conv_tocart_search, conv_tocart_pdp=conv_tocart_pdp,
-                                    conv_tocart=conv_tocart, revenue=revenue, returns=returns, cancellations=cancellations,
-                                    ordered_units=ordered_units, delivered_units=delivered_units, adv_view_pdp=adv_view_pdp,
-                                    adv_view_search_category=adv_view_search_category, adv_view_all=adv_view_all,
-                                    adv_sum_all=adv_sum_all, position_category=position_category, postings=postings,
-                                    postings_premium=postings_premium)
+        metrics_to_update.update(user_id=user_data, product_id=product_id, product_name=product_name,
+                                 hits_view_search=hits_view_search, hits_view_pdp=hits_view_pdp, hits_view=hits_view,
+                                 hits_tocart_search=hits_tocart_search, hits_tocart_pdp=hits_tocart_pdp,
+                                 hits_tocart=hits_tocart, session_view_search=session_view_search,
+                                 session_view_pdp=session_view_pdp, session_view=session_view,
+                                 conv_tocart_search=conv_tocart_search, conv_tocart_pdp=conv_tocart_pdp,
+                                 conv_tocart=conv_tocart, revenue=revenue, returns=returns, cancellations=cancellations,
+                                 ordered_units=ordered_units, delivered_units=delivered_units,
+                                 adv_view_pdp=adv_view_pdp,
+                                 adv_view_search_category=adv_view_search_category, adv_view_all=adv_view_all,
+                                 adv_sum_all=adv_sum_all, position_category=position_category, postings=postings,
+                                 postings_premium=postings_premium)

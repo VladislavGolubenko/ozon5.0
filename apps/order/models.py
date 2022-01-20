@@ -1,7 +1,8 @@
 from django.db import models
-#from ..product.models import ProductInOrder
+# from ..product.models import ProductInOrder
 from ..ozon_transaction.models import OzonTransactions
 from django.apps import apps
+from django.db.models import Sum
 
 
 # ProductInOrder = apps.get_model('ProductInOrder')
@@ -16,6 +17,7 @@ class OrderManager(models.Manager):
                             posting_number=posting_number, region=region, city=city, delivery_type=delivery_type,
                             warehous_id=warehous_id, warehouse_name=warehouse_name)
         return order
+
 
 class Order(models.Model):
 
@@ -50,12 +52,26 @@ class Order(models.Model):
         return comissions_summ
 
     def get_amount(self):
+
         amounts = OzonTransactions.objects.filter(posting_number=self.posting_number)
         amounts_summ = 0
 
         for amount in amounts:
             amounts_summ += (amount.amount)
         return amounts_summ
+
+        # products_price_query = ProductInOrder.objects.filter(order_id=self.pk).aggregate(Sum('summ_price'))
+        # products_price = products_price_query['summ_price__sum'] if products_price_query['summ_price__sum'] is not None else 0
+        #
+        # comissions = OzonTransactions.objects.filter(posting_number=self.posting_number)
+        # comissions_summ = 0
+        #
+        # for comission in comissions:
+        #     comissions_summ += (comission.sale_commission)
+        #
+        # amount = products_price - comissions_summ
+        # return amount
+
 
     def __str__(self):
         return str(self.order_number)
