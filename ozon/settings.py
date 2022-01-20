@@ -49,31 +49,7 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER ='json'
 
 
-CORS_ORIGIN_ALLOW_ALL = True
-SESSION_COOKIE_SAMESITE = None
-SESSION_COOKIE_SAMESITE_FORCE_ALL = True
-SESSION_COOKIE_SAMESITE_FORCE_CORE = False
-CORS_ALLOW_METHODS = [
-    "DELETE",
-    "GET",
-    "OPTIONS",
-    "PATCH",
-    "POST",
-    "PUT",
-]
-CORS_ALLOW_HEADERS = (
-    "accept",
-    "accept-encoding",
-    "authorization",
-    "content-type",
-    "dnt",
-    "origin",
-    "user-agent",
-    "x-csrftoken",
-    "x-requested-with",
-    "Access-Control-Allow-Headers",
-    "Access-Control-Allow-Credentials",
-)
+
 
 # Application definition
 
@@ -127,8 +103,9 @@ MIDDLEWARE_CLASSES = (
 
 )
 
-CORS_ORIGIN_ALLOW_ALL = True  # If this is used then `CORS_ORIGIN_WHITELIST` will not have any effect
-CORS_ALLOW_CREDENTIALS = True
+
+
+
 APPEND_SLASH = False
 
 ROOT_URLCONF = 'ozon.urls'
@@ -277,3 +254,38 @@ EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
+
+
+
+
+"""
+////////////////////
+Настройки CORS
+////////////////////
+"""
+CORS_ORIGIN_ALLOW_ALL = True
+SESSION_COOKIE_SAMESITE = None
+SESSION_COOKIE_SAMESITE_FORCE_ALL = True
+SESSION_COOKIE_SAMESITE_FORCE_CORE = False
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+CORS_ALLOW_HEADERS = (
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+    "Access-Control-Allow-Headers",
+    "Access-Control-Allow-Credentials",
+)
