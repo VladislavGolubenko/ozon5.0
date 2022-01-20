@@ -239,7 +239,8 @@ def update_analitics_data(*args, **kwargs):
                                  session_view_pdp=session_view_pdp, session_view=session_view,
                                  conv_tocart_search=conv_tocart_search, conv_tocart_pdp=conv_tocart_pdp,
                                  conv_tocart=conv_tocart, revenue=revenue, returns=returns, cancellations=cancellations,
-                                 ordered_units=ordered_units, delivered_units=delivered_units, adv_view_pdp=adv_view_pdp,
+                                 ordered_units=ordered_units, delivered_units=delivered_units,
+                                 adv_view_pdp=adv_view_pdp,
                                  adv_view_search_category=adv_view_search_category, adv_view_all=adv_view_all,
                                  adv_sum_all=adv_sum_all, position_category=position_category, postings=postings,
                                  postings_premium=postings_premium)

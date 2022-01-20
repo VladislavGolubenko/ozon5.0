@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from .models import *
 from ..ozon_transaction.models import OzonTransactions
 
+
 def company_products_function(user_id, date):
     """
         Функция возвращающая "Аналитику продукта"

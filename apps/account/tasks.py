@@ -16,6 +16,7 @@ def return_user_role(self, user_id):
     user.role = User.USER
     user.save()
 
+
 @app.task(bind=True)
 def create_or_update_products(*args, **kwargs):
     user_id = kwargs.get('user_id')
@@ -23,7 +24,6 @@ def create_or_update_products(*args, **kwargs):
     user_data = User.objects.get(id=user_id)
     ozon_ovner = str(user_data.ozon_id)
     ProductsOzon.update_or_create_products(user_data.api_key, ozon_ovner, user_data)
-
 
 
 @app.task(name="get_order")

@@ -6,8 +6,10 @@ import requests
 from .tasks import upload_products
 from ..account.tasks import get_order, get_ozon_transaction
 
+
 class CreateMarketplaceSerializer(serializers.ModelSerializer):
     valid = serializers.BooleanField(read_only=True)
+
     class Meta:
         model = Marketplace
         fields = ("id", "marketplace_name", "marketplace_id", "api_key", "valid")
@@ -20,13 +22,11 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
         marketplace_name = validated_data.get('marketplace_name')
         user = self.context['request'].user
         print(user)
-        
 
-        
-        api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list',  headers={'Client-Id': marketplace_id,
-                                                                                                'Api-Key': api_key,
-                                                                                                'Content-Type': 'application/json',
-                                                                                                'Host': 'api-seller.ozon.ru'})
+        api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list',
+                                      headers={'Client-Id': marketplace_id, 'Api-Key': api_key,
+                                               'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
+
         if api_key_isset.status_code == 200:
             valid = True
             upload_products.delay(
@@ -56,6 +56,7 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
             )
         user.marketplace_data.add(marketplace.pk)
         return marketplace
+
     def update(self, instance, validated_data):
 
         marketplace_id = str(validated_data.get('marketplace_id'))
@@ -66,10 +67,10 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
             print(attr, value)
             setattr(instance, attr, value)
 
-        api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list',  headers={'Client-Id': marketplace_id,
-                                                                                                'Api-Key': api_key,
-                                                                                                'Content-Type': 'application/json',
-                                                                                                'Host': 'api-seller.ozon.ru'})
+        api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list',
+                                      headers={'Client-Id': marketplace_id, 'Api-Key': api_key,
+                                               'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
+
         if api_key_isset.status_code == 200:
             upload_products.delay(
                 api_key=api_key,
@@ -92,7 +93,8 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
         instance.valid = valid
         instance.save()
         return instance
-        
+
+
 class ViewMarketplaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Marketplace

@@ -21,6 +21,7 @@ from .service import (
     warehous_account_function,
     company_dashbord_function,
 )
+from .filters import ProductActualFilter
 
 
 class ProductInOrderAction(RetrieveUpdateDestroyAPIView):
@@ -52,6 +53,13 @@ class ProductListAction(ListCreateAPIView):
     ordering_fields = '__all__'
 
     def get_queryset(self):
+
+        actual = self.request.GET['actual']  # Получаем True/False (актуальный ли товар) для фильтра
+        if actual is not None:
+            actual = True if actual == "True" or actual == '1' else False
+            queryset = Product.objects.filter(user_id=self.request.user.pk)
+            return ProductActualFilter.actual_products(self, queryset=queryset, actual=actual)
+
         return Product.objects.filter(user_id=self.request.user.pk)
 
     def perform_create(self, serializer):
