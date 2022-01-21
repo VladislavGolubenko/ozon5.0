@@ -1,7 +1,7 @@
 import json
 from django.http import Http404
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.filters import OrderingFilter
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework import status
 from rest_framework.response import Response
@@ -21,7 +21,7 @@ from .service import (
     warehous_account_function,
     company_dashbord_function,
 )
-
+from django.db.models import Q
 
 class ProductInOrderAction(RetrieveUpdateDestroyAPIView):
     """
@@ -32,8 +32,10 @@ class ProductInOrderAction(RetrieveUpdateDestroyAPIView):
     queryset = ProductInOrder.objects.all()
     serializer_class = ProductInOrderSerializer
     pagination_class = LimitOffsetPagination
-    filter_backends = (OrderingFilter,)
+    filter_backends = (OrderingFilter, SearchFilter)
     ordering_fields = '__all__'
+    earch_fields = ['sku', 'name', 'product_id']
+
 
     def get_queryset(self):
         return ProductInOrder.objects.filter(user_id=self.request.user.pk)
@@ -48,9 +50,9 @@ class ProductListAction(ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     pagination_class = LimitOffsetPagination
-    filter_backends = (OrderingFilter,)
+    filter_backends = (OrderingFilter, SearchFilter)
     ordering_fields = '__all__'
-
+    search_fields = ['sku', 'name', 'ozon_product_id']
     def get_queryset(self):
         return Product.objects.filter(user_id=self.request.user.pk)
 
@@ -95,22 +97,44 @@ class ProductDetailAction(APIView):
 class WarehouseAccountView(APIView):
     """
         Складской учет
+        Для поиска использовать параметр search
     """
 
     #permission_classes = [IsSubscription]
-
-    def post(self, request, days):
+    def get(self, request):
 
         # serializer = WarehouseAccountSerializer
 
-        json_with_id = json.loads(request.body.decode("utf-8"))
-        id_of_user = json_with_id['id']
+        # json_with_id = json.loads(request.body.decode("utf-8"))
+        # id_of_user = json_with_id['id']
         
         id_user = request.user.id
         
         # print(request.user.id)
-        
+        search = request.query_params.get("search")
+        days = int(request.query_params.get("days"))
+        print(days)
+        print(isinstance(search, str))
         products = Product.objects.filter(user_id=id_user)
+        
+        if (search is not None) and (search !=''):
+            
+            try:
+                if isinstance(int(search), int):  
+            
+                    products = products.filter( 
+                                                Q(sku__contains=search)
+                                                | Q(name__contains=search)
+                                                | Q(ozon_product_id=search)
+                                            )
+            except:
+                products = products.filter( 
+                                                Q(sku__contains=search)
+                                                | Q(name__contains=search)
+
+                                            )
+
+
         datas = []
 
         for product in products:
