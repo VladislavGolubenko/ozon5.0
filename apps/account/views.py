@@ -34,7 +34,7 @@ class UserView(CreateAPIView):
     #     return Response(serializer.data)
 
 
-class ResetPasswordView(APIView):
+class ChangePasswordView(APIView):
 
     def post(self, request, *args, **kwargs):
 

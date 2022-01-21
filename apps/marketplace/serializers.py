@@ -3,8 +3,9 @@ from rest_framework import serializers
 from .models import Marketplace
 from ..account.models import User
 import requests
-from .tasks import upload_products
-from ..account.tasks import get_order, get_ozon_transaction
+from .tasks import upload_products, upload_orders, upload_transactions, upload_stocks
+from ..account.services.orders import OrdersOzon 
+
 
 
 class CreateMarketplaceSerializer(serializers.ModelSerializer):
@@ -34,16 +35,22 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
                 client_id=marketplace_id,
                 user_id=user.pk
                 )
-            get_order.delay(
+            upload_orders.delay(
                 api_key=api_key,
                 client_id=marketplace_id,
                 user_id=user.pk
                 )
-            get_ozon_transaction.delay(
+            upload_transactions.delay(
                 api_key=api_key,
                 client_id=marketplace_id,
                 user_id=user.pk
                 )
+            upload_stocks.delay(
+                api_key=api_key,
+                client_id=marketplace_id,
+                user_id=user.pk
+                )
+            
         else:
             valid = False
 
@@ -77,12 +84,17 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
                 client_id=marketplace_id,
                 user_id=user.pk
                 )
-            get_order.delay(
+            upload_orders.delay(
                 api_key=api_key,
                 client_id=marketplace_id,
                 user_id=user.pk
                 )
-            get_ozon_transaction.delay(
+            upload_transactions.delay(
+                api_key=api_key,
+                client_id=marketplace_id,
+                user_id=user.pk
+                )
+            upload_stocks.delay(
                 api_key=api_key,
                 client_id=marketplace_id,
                 user_id=user.pk

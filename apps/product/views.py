@@ -54,7 +54,7 @@ class ProductListAction(ListCreateAPIView):
 
     def get_queryset(self):
 
-        actual = self.request.GET['actual']  # Получаем True/False (актуальный ли товар) для фильтра
+        actual = self.request.GET.get('actual')  # Получаем True/False (актуальный ли товар) для фильтра
         if actual is not None:
             actual = True if actual == "True" or actual == '1' else False
             queryset = Product.objects.filter(user_id=self.request.user.pk)
@@ -126,7 +126,7 @@ class WarehouseAccountView(APIView):
             data = warehous_account_function(product=product, days=days)
 
             datas.append(data)
-        print(datas)
+        #print(datas)
         paginator = LimitOffsetPagination()
         result_page = paginator.paginate_queryset(datas, request)
 
@@ -171,7 +171,7 @@ class CompanyDashbordView(APIView):
     serializers = CompanyDashbordSerializer
 
     def get(self, request):
-        date = int(self.request.GET['date'])
+        date = int(self.request.GET.get('date'))
         date_from = datetime.now() - timedelta(date)
 
         if date is not None:

@@ -1,3 +1,4 @@
+from ast import Or
 from ozon.celery import app
 from .models import User
 from datetime import datetime
@@ -8,7 +9,7 @@ from ..order.models import Order
 from ..ozon_transaction.models import OzonTransactions
 from ..product.models import ProductInOrder, Product
 from .services.products import ProductsOzon
-
+from .services.orders import OrdersOzon
 
 @app.task(bind=True)
 def return_user_role(self, user_id):
@@ -257,4 +258,3 @@ def get_ozon_transaction(api_key, client_id, user_id):
                 if order:
                     product_relation = ProductInOrder.objects.filter(sku=sku, order_id=order.pk).first()
                     transaction_save.product.add(product_relation.pk)
-

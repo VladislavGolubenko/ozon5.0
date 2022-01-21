@@ -12,25 +12,34 @@ app.conf.timezone = 'Europe/Moscow'
 
 
 app.conf.beat_schedule = {
-    # 'update_product_order': {
-    #     'task': 'update_product_order',
-    #     'schedule': crontab(minute=50, hour=11), #crontab(minute=17, hour=17),
+    # # Подгрузка и обновление товаров
+    # 'create_or_update_products_every_day': {
+    #     'task': 'create_or_update_products_every_day',
+    #     'schedule': 30,
+    # },
+    # # Подгрузка заказов
+    # 'create_or_update_orders_every_day': {
+    #     'task': 'create_or_update_orders_every_day',
+    #     'schedule': 31,#crontab(minute=17, hour=17),
     #     # 'schedule': 30,
     # },
+    # # Подгрузка транзакций
+    # 'create_or_update_transactions_every_day': {
+    #     'task': 'create_or_update_transactions_every_day',
+    #     'schedule': 32,#crontab(minute=18, hour=17),
+    # }
 
-    # 'found_new_ozon_transaction': {
-    #     'task': 'found_new_ozon_transaction',
-    #     'schedule': crontab(minute=51, hour=11)#crontab(minute=18, hour=17),
-    # },
+
+
 
     # 'get_analitic_data': {
     #     'task': 'get_analitic_data',
-    #     'schedule': crontab(minute=52, hour=11), #crontab(minute=19, hour=17),
+    #     'schedule': 17,#crontab(minute=19, hour=17),
     # },
 
     # 'update_analitics_data': {
     #     'task': 'update_analitics_data',
-    #     'schedule': crontab(minute=53, hour=11),#crontab(minute=20, hour=17),
+    #     'schedule': 18,#crontab(minute=20, hour=17),
     # }
 }
 
