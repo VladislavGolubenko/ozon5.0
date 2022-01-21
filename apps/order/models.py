@@ -44,11 +44,13 @@ class Order(models.Model):
     #     return products
 
     def get_summ_comission(self):
+
         comissions = OzonTransactions.objects.filter(posting_number=self.posting_number)
         comissions_summ = 0
 
         for comission in comissions:
             comissions_summ += (comission.sale_commission)
+        print(self.posting_number, comissions)
         return comissions_summ
 
     def get_amount(self):
@@ -58,6 +60,9 @@ class Order(models.Model):
 
         for amount in amounts:
             amounts_summ += (amount.amount)
+
+        print(amounts)
+
         return amounts_summ
 
         # products_price_query = ProductInOrder.objects.filter(order_id=self.pk).aggregate(Sum('summ_price'))
@@ -71,7 +76,6 @@ class Order(models.Model):
         #
         # amount = products_price - comissions_summ
         # return amount
-
 
     def __str__(self):
         return str(self.order_number)

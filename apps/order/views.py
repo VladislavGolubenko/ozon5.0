@@ -11,7 +11,7 @@ from ..account.permissions import IsSubscription
 from .models import Order
 from .serializers import OrderSerializer
 
-# Create your views here.
+
 class OrderList(ListAPIView):
     """
         Вывод списка заказов
