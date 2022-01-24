@@ -50,7 +50,7 @@ class Product(models.Model):
     unit_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена юнита')
     logistics_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена логистики')
     additional_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Дополнительные затраты')
-    summ_price = models.FloatField(blank=True, null=True, verbose_name='Итого')
+    summ_price = models.FloatField(default=0, verbose_name='Итого')
     marketing_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена')
     stock_balance = models.IntegerField(verbose_name="Остатки на складе", null=True)
     way_to_warehous = models.IntegerField(verbose_name="В пути на склад", null=True)

@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.db.models import Q, Count, Sum
 from rest_framework import status
 from rest_framework.response import Response
-
+import math
 from .models import *
 from ..ozon_transaction.models import OzonTransactions
 
@@ -326,7 +326,6 @@ def warehous_account_function(product, days):
 
         p.s.: некоторые поля могут возвращать None при недастаче данных (которые должен вводить пользователь) у товара
     """
-
     date_sort = datetime.now() - timedelta(days=days)
 
     preview = product.preview
@@ -339,11 +338,12 @@ def warehous_account_function(product, days):
 
     products_in_orders = ProductInOrder.objects.filter(sku=product.sku,
                                                        order_id_id__date_of_order__gte=date_sort)
-
+    #print(products_in_orders)
     for product_in_order in products_in_orders:
         orders_by_period += product_in_order.quantity  # Заказано за период
-
+    #print("orders_by_period: ", orders_by_period)
     orders_speed = orders_by_period / days  # Средняя скорость заказов
+    #print("orders_speed: ", orders_speed)
     days_for_production = product.days_for_production  # Срок производства
 
     if orders_speed != 0.0:
@@ -353,8 +353,8 @@ def warehous_account_function(product, days):
 
     reorder_days_of_supply = product.reorder_days_of_supply  # Глубина поставки
     potencial_proceeds = product.marketing_price * product.stock_balance  # Потенциальная выручка остатков
-    print(product.stock_balance)
-    print(product.marketing_price)
+    # print(product.stock_balance)
+    # print(product.marketing_price)
     if product.summ_price is not None:
         product_price = product.summ_price  # Стоимость товара
     elif product.unit_price and product.additional_price and product.logistics_price is not None:
@@ -368,7 +368,7 @@ def warehous_account_function(product, days):
         stocks_cost_price = None
 
     if reorder_days_of_supply is not None:
-        need_to_order = reorder_days_of_supply * orders_speed  # Необходимо заказать
+        need_to_order = math.ceil(reorder_days_of_supply * orders_speed)  # Необходимо заказать
     else:
         need_to_order = None
 
@@ -394,6 +394,10 @@ def warehous_account_function(product, days):
     else:
         reorder_date = None
 
+    average_profit_unit = product.summ_price -   None # Средняя прибыль единицы товара =  Цена - среднне(коммисии) - стоимость товара  (итого стоимость)
+    # Потенциальная прибыль остатков = Остатки на складе * Средняя прибыль единицы товара
+    # Прибыль перезаказа = Средняя прибыль единицы товара * необходимо заказать
+
     data = {
         'preview': preview,  # Превью
         'ozon_product_id': ozon_product_id,  # ID +
@@ -412,7 +416,7 @@ def warehous_account_function(product, days):
         'reorder_sum': reorder_sum,  # Сумма перезаказа + 
         'status_of_product': status_of_product,  # Статус + 
         'reorder_date': reorder_date,  # Дата перезаказа +
-
+        'average_profit_unit': average_profit_unit, # Средняя прибыль единицы товара
         # Параметр на согласовании:
         # Средняя прибыль единицы товара
 
@@ -420,4 +424,5 @@ def warehous_account_function(product, days):
         # Прибыль перезаказа
         # Потенциальная прибыль остатков
     }
+    #print(data)
     return data
