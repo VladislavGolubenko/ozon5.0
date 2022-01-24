@@ -330,6 +330,7 @@ def warehous_account_function(product, days):
     date_sort = datetime.now() - timedelta(days=days)
 
     preview = product.preview
+    offer_id = product.offer_id
     ozon_product_id = product.ozon_product_id
     sku = product.sku
     name = product.name
@@ -417,6 +418,7 @@ def warehous_account_function(product, days):
         'reorder_sum': reorder_sum,  # Сумма перезаказа + 
         'status_of_product': status_of_product,  # Статус + 
         'reorder_date': reorder_date,  # Дата перезаказа +
+        'offer_id': offer_id,
         #'average_profit_unit': average_profit_unit, # Средняя прибыль единицы товара
         # Параметр на согласовании:
         # Средняя прибыль единицы товара

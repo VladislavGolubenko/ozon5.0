@@ -98,7 +98,8 @@ class ProductsOzon:
             if product_json.get('visible') is True:
                 ozon_id = product_json.get('id')
                 preview = product_json.get('primary_image')
-                
+                print(product_json.get('offer_id'))
+                offer_id = product_json.get('offer_id')
                 marketing_price = product_json.get('marketing_price') 
                 if (marketing_price == 0.0) or (marketing_price is None) or (marketing_price==''):
                     marketing_price = product_json['price']
@@ -130,6 +131,7 @@ class ProductsOzon:
                     product.way_to_warehous=go_to_warehouse
                     product.marketing_price=marketing_price
                     product.user_id=user
+                    product.offer_id = offer_id
                     product.save()
                 else:
                     Product.objects.create_product(
@@ -141,5 +143,6 @@ class ProductsOzon:
                         reserved=reserved, 
                         way_to_warehous=go_to_warehouse,
                         marketing_price=marketing_price, 
-                        user_id=user
+                        user_id=user,
+                        offer_id = offer_id
                         )
