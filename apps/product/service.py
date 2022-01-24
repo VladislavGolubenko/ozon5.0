@@ -417,7 +417,7 @@ def warehous_account_function(product, days):
         'reorder_sum': reorder_sum,  # Сумма перезаказа + 
         'status_of_product': status_of_product,  # Статус + 
         'reorder_date': reorder_date,  # Дата перезаказа +
-        'average_profit_unit': average_profit_unit, # Средняя прибыль единицы товара
+        #'average_profit_unit': average_profit_unit, # Средняя прибыль единицы товара
         # Параметр на согласовании:
         # Средняя прибыль единицы товара
 
