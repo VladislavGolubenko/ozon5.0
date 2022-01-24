@@ -8,11 +8,11 @@ from ..order.models import Order
 
 class ProductManager(models.Manager):
     def create_product(self, preview, ozon_product_id, sku, name, stock_balance, way_to_warehous, marketing_price,
-                       reserved, user_id):
+                       reserved, user_id, offer_id):
 
         product = self.create(preview=preview, ozon_product_id=ozon_product_id, sku=sku, name=name,
                               stock_balance=stock_balance, way_to_warehous=way_to_warehous,
-                              marketing_price=marketing_price, reserved=reserved, user_id=user_id)
+                              marketing_price=marketing_price, reserved=reserved, user_id=user_id, offer_id=offer_id)
         return product
 
 
@@ -57,6 +57,7 @@ class Product(models.Model):
     way_to_warehous = models.IntegerField(verbose_name="В пути на склад", null=True)
     reserved = models.IntegerField(verbose_name="Зарезервировано", blank=True, null=True)
     creating_date = models.DateField(auto_now_add=True, blank=True, null=True)
+    offer_id = models.CharField(max_length=100, null=True, verbose_name='артикул')
     objects = ProductManager()
 
     @property

@@ -58,7 +58,7 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = ("id", "preview", "ozon_product_id", "sku", "name", "days_for_production", "reorder_days_of_supply",
                   "unit_price", "logistics_price", "additional_price", "summ_price",  "marketing_price",
-                  "order_for_thirty_days", "stock_balance")
+                  "order_for_thirty_days", "stock_balance", "offer_id")
 
 
 class ProductInOrderSerializer(serializers.ModelSerializer):
