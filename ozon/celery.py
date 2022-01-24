@@ -12,22 +12,29 @@ app.conf.timezone = 'Europe/Moscow'
 
 
 app.conf.beat_schedule = {
-    # # Подгрузка и обновление товаров
-    # 'create_or_update_products_every_day': {
-    #     'task': 'create_or_update_products_every_day',
-    #     'schedule': 30,
-    # },
-    # # Подгрузка заказов
-    # 'create_or_update_orders_every_day': {
-    #     'task': 'create_or_update_orders_every_day',
-    #     'schedule': 31,#crontab(minute=17, hour=17),
-    #     # 'schedule': 30,
-    # },
-    # # Подгрузка транзакций
-    # 'create_or_update_transactions_every_day': {
-    #     'task': 'create_or_update_transactions_every_day',
-    #     'schedule': 32,#crontab(minute=18, hour=17),
-    # }
+    # Подгрузка и обновление товаров
+    'create_or_update_products_every_day': {
+        'task': 'create_or_update_products_every_day',
+        'schedule': 30,
+    },
+    # Подгрузка заказов
+    'create_or_update_orders_every_day': {
+        'task': 'create_or_update_orders_every_day',
+        'schedule': 31,#crontab(minute=17, hour=17),
+        # 'schedule': 30,
+    },
+    # Подгрузка транзакций
+    'create_or_update_transactions_every_day': {
+        'task': 'create_or_update_transactions_every_day',
+        'schedule': 32,#crontab(minute=18, hour=17),
+    },
+
+    # Поля комиссии и выручка у заказов
+    'update_order_field': {
+        'task': 'update_order_field',
+        'schedule': 32,#crontab(minute=18, hour=17),
+    }
+
 
 
 

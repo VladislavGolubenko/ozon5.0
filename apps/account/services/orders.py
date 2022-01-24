@@ -9,6 +9,7 @@ from rest_framework import status
 from apps.metric.models import OzonMetrics
 from ..models import User
 from ...order.models import Order
+from ...ozon_transaction.models import OzonTransactions
 from ...product.models import Product, ProductInOrder
 
 
@@ -139,7 +140,7 @@ class OrdersOzon:
             delivery_type = analitics_data.get('delivery_type')
         
         order_in_model = Order.objects.filter(posting_number=posting_number)
-        if len(order_in_model)==0:
+        if len(order_in_model) == 0:
             order_save = Order.objects.create_order(order_id=order_id, in_process_at=in_process_at, user_id=user,
                                                     status=status2, date_of_order=date_of_order,
                                                     posting_number=posting_number, region=region, city=city,
@@ -147,9 +148,35 @@ class OrdersOzon:
                                                     warehouse_name=warehouse_name)
             OrdersOzon._add_product_in_order(order, order_save, user)
 
-
     @staticmethod
     def update_or_create_orders(api_key:str, ozon_id:str, user:User) -> None:
         orders = OrdersOzon.get_orders_in_json(api_key, ozon_id)
         for order in orders:
             OrdersOzon._create_order(order, user)
+
+    @staticmethod
+    def update_order_fields(user: User) -> None:
+        orders = Order.objects.filter(user_id=user)
+        for order in orders:
+            amounts_summ = 0
+            comissions_summ = 0
+            transactions = OzonTransactions.objects.filter(posting_number=order.posting_number)
+
+            for transaction in transactions:
+                if not transaction.services:
+                    services = 0
+                else:
+                    services_list = transaction.services
+                    id = 0
+                    services = 0
+                    for object in services_list:
+                        services += int(object[id]['price'])
+                        id += 1
+                comission = transaction.sale_commission + services
+                comissions_summ += comission
+                amounts_summ += transaction.amount
+            order.amount = amounts_summ
+            order.summ_comission = comissions_summ
+            order.save()
+
+

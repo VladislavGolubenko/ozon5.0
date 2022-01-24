@@ -21,7 +21,7 @@ from .service import (
     warehous_account_function,
     company_dashbord_function,
 )
-from .filters import ProductActualFilter
+from .filters import ProductActualFilter, WarehousFilterByList
 
 
 class ProductInOrderAction(RetrieveUpdateDestroyAPIView):
@@ -107,30 +107,36 @@ class WarehouseAccountView(APIView):
 
     #permission_classes = [IsSubscription]
 
-    def post(self, request, days):
+    def get(self, request, days):
 
-        # serializer = WarehouseAccountSerializer
-
-        json_with_id = json.loads(request.body.decode("utf-8"))
-        id_of_user = json_with_id['id']
-        
-        id_user = request.user.id
-        
-        # print(request.user.id)
-        
-        products = Product.objects.filter(user_id=id_user)
+        actual = self.request.GET.get('actual')  # Получаем True/False (актуальный ли товар) для фильтра
+        products = Product.objects.filter(user_id=self.request.user.pk)
         datas = []
 
         for product in products:
-
             data = warehous_account_function(product=product, days=days)
-
             datas.append(data)
-        #print(datas)
+
+        if actual is not None:
+            actual = True if actual == "True" or actual == '1' else False
+            # queryset = Product.objects.filter(user_id=self.request.user.pk)
+            datas = WarehousFilterByList.actual_warehous(self, data=datas, actual=actual)
+
         paginator = LimitOffsetPagination()
         result_page = paginator.paginate_queryset(datas, request)
 
         return Response(data=result_page, status=status.HTTP_200_OK)
+
+
+        # serializer = WarehouseAccountSerializer
+
+        # получение данных из тела запроса GET
+        # json_with_id = json.loads(request.body.decode("utf-8"))
+        # id_of_user = json_with_id['id']
+        # id_user = request.user.id
+        
+        # print(request.user.id)
+        
 
 
 # class ObjectInTableView(APIView):

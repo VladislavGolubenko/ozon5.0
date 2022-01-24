@@ -22,7 +22,6 @@ class OrderManager(models.Manager):
 class Order(models.Model):
 
     user_id = models.ForeignKey("account.User", on_delete=models.CASCADE, related_name="order_to_user", null=True, blank=True)
-
     order_number = models.CharField(max_length=500, verbose_name="Номер заказа")
     date_of_order = models.DateTimeField(auto_now=False, auto_now_add=False,
                                          verbose_name="Дата и время размещения заказа")
@@ -35,8 +34,9 @@ class Order(models.Model):
     delivery_type = models.CharField(max_length=100, verbose_name="Тип доставки", blank=True, null=True)
     warehous_id = models.BigIntegerField(verbose_name="ID склада", blank=True, null=True)
     warehouse_name = models.CharField(max_length=500, verbose_name="Склад отгрузки", blank=True, null=True)
-
     creating_date = models.DateField(auto_now_add=True, blank=True, null=True)
+    summ_comission = models.FloatField(blank=True, null=True, default=0, verbose_name='Сумма комиссий')
+    amount = models.FloatField(blank=True, null=True, default=0, verbose_name='Прибыль')
 
     # @property
     # def get_product_in_order(self):
@@ -50,7 +50,7 @@ class Order(models.Model):
 
         for comission in comissions:
             comissions_summ += (comission.sale_commission)
-        print(self.posting_number, comissions)
+
         return comissions_summ
 
     def get_amount(self):
@@ -60,8 +60,6 @@ class Order(models.Model):
 
         for amount in amounts:
             amounts_summ += (amount.amount)
-
-        print(amounts)
 
         return amounts_summ
 

@@ -107,6 +107,11 @@ class TransactionOzon:
                                                             amount=amount, type=finance_type,
                                                             posting_number=posting_number, services=services_array)
 
+            comissions = OzonTransactions.objects.filter(posting_number=transaction_save.posting_number)
+            comissions_summ = 0
+
+
+
             for item in items:
                 sku = item['sku']
 
@@ -115,7 +120,7 @@ class TransactionOzon:
                     product_relation = ProductInOrder.objects.filter(sku=sku, order_id=order.pk).first()
                     transaction_save.product.add(product_relation.pk)
 
-    def create_transactions(api_key:str, ozon_id:str, user):
+    def create_transactions(api_key: str, ozon_id: str, user):
         operations = TransactionOzon.get_transactions(api_key, ozon_id)
         #print(transactions)
         #operations = transactions

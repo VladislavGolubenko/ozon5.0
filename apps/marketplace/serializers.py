@@ -3,9 +3,8 @@ from rest_framework import serializers
 from .models import Marketplace
 from ..account.models import User
 import requests
-from .tasks import upload_products, upload_orders, upload_transactions, upload_stocks
+from .tasks import upload_products, upload_orders, upload_transactions, upload_stocks, update_order_field
 from ..account.services.orders import OrdersOzon 
-
 
 
 class CreateMarketplaceSerializer(serializers.ModelSerializer):
@@ -16,13 +15,10 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
         fields = ("id", "marketplace_name", "marketplace_id", "api_key", "valid")
     
     def create(self, validated_data):
-        print(validated_data)
-       
         marketplace_id = str(validated_data.get('marketplace_id'))
         api_key = validated_data.get('api_key')
         marketplace_name = validated_data.get('marketplace_name')
         user = self.context['request'].user
-        print(user)
 
         api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list',
                                       headers={'Client-Id': marketplace_id, 'Api-Key': api_key,
@@ -50,7 +46,9 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
                 client_id=marketplace_id,
                 user_id=user.pk
                 )
-            
+            update_order_field.delay(
+                user_id=user.pk,
+            )
         else:
             valid = False
 
@@ -99,6 +97,9 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
                 client_id=marketplace_id,
                 user_id=user.pk
                 )
+            update_order_field.delay(
+                user_id=user.pk
+            )
             valid = True
         else:
             valid = False
