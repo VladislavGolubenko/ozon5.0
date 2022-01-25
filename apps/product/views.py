@@ -36,7 +36,7 @@ class ProductInOrderAction(RetrieveUpdateDestroyAPIView):
     pagination_class = LimitOffsetPagination
     filter_backends = (OrderingFilter, SearchFilter)
     ordering_fields = '__all__'
-    earch_fields = ['sku', 'name', 'product_id']
+    search_fields = ['sku', 'name', 'product_id', 'offer_id']
 
 
     def get_queryset(self):
@@ -54,10 +54,11 @@ class ProductListAction(ListCreateAPIView):
     pagination_class = LimitOffsetPagination
     filter_backends = (OrderingFilter, SearchFilter)
     ordering_fields = '__all__'
-    search_fields = ['sku', 'name', 'ozon_product_id']
+    search_fields = ['sku', 'name', 'ozon_product_id', 'offer_id']
     def get_queryset(self):
 
         actual = self.request.GET.get('actual')  # Получаем True/False (актуальный ли товар) для фильтра
+
         if actual is not None:
             actual = True if actual == "True" or actual == '1' else False
             queryset = Product.objects.filter(user_id=self.request.user.pk)
@@ -135,11 +136,13 @@ class WarehouseAccountView(APIView):
                                                 Q(sku__contains=search)
                                                 | Q(name__contains=search)
                                                 | Q(ozon_product_id=search)
+                                                | Q(offer_id=search)
                                             )
             except:
                 products = products.filter(
                                                 Q(sku__contains=search)
                                                 | Q(name__contains=search)
+                                                | Q(offer_id=search)
 
                                             )
 
