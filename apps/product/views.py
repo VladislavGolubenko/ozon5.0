@@ -15,7 +15,7 @@ from .serializers import (
 from rest_framework import permissions
 from ..account.permissions import IsSubscription
 from .models import Product, ProductInOrder
-
+from rest_framework.permissions import IsAuthenticated
 from datetime import timedelta, datetime
 from .service import (
     warehous_account_function,
@@ -49,7 +49,7 @@ class ProductListAction(ListCreateAPIView):
     """
     permission_classes = [permissions.IsAuthenticated]#[IsSubscription]
 
-    queryset = Product.objects.all()
+    queryset = Product.objects.filter(is_visible=True)
     serializer_class = ProductSerializer
     pagination_class = LimitOffsetPagination
     filter_backends = (OrderingFilter, SearchFilter)
@@ -61,10 +61,10 @@ class ProductListAction(ListCreateAPIView):
 
         if actual is not None:
             actual = True if actual == "True" or actual == '1' else False
-            queryset = Product.objects.filter(user_id=self.request.user.pk)
+            queryset = Product.objects.filter(user_id=self.request.user.pk, is_visible=True)
             return ProductActualFilter.actual_products(self, queryset=queryset, actual=actual)
 
-        return Product.objects.filter(user_id=self.request.user.pk)
+        return Product.objects.filter(user_id=self.request.user.pk, is_visible=True)
 
     def perform_create(self, serializer):
         return serializer.save()
@@ -74,11 +74,11 @@ class ProductDetailAction(APIView):
     """
         Конкретный товар
     """
-    permission_classes = [IsSubscription]
+    permission_classes = [IsAuthenticated, IsSubscription]
 
     def get_object(self, pk):
         try:
-            return Product.objects.get(pk=pk)
+            return Product.objects.get(pk=pk, is_visible=True)
         except Product.DoesNotExist:
             raise Http404
 
@@ -125,7 +125,7 @@ class WarehouseAccountView(APIView):
         days = int(request.query_params.get("days"))
         print(days)
         print(isinstance(search, str))
-        products = Product.objects.filter(user_id=id_user)
+        products = Product.objects.filter(user_id=id_user, is_visible=True)
 
         if (search is not None) and (search !=''):
 
@@ -143,7 +143,6 @@ class WarehouseAccountView(APIView):
                                                 Q(sku__contains=search)
                                                 | Q(name__contains=search)
                                                 | Q(offer_id=search)
-
                                             )
 
 
@@ -186,7 +185,7 @@ class WarehouseAccountView(APIView):
 
 
 class CompanyDashbordView(APIView):
-    permission_classes = [IsSubscription]
+    permission_classes = [IsAuthenticated, IsSubscription]
 
     """
     Aналитичская информация компании

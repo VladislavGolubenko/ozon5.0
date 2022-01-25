@@ -118,7 +118,7 @@ class OrdersOzon:
                                                         additional_price=additional_price, summ_price=summ_price)
             i += 1
 
-    def _create_order(order:json, user:User):
+    def _create_order(order:json, user:User, ozon_id:int):
         order_id = order.get('order_id')
         posting_number = order.get('posting_number')
         in_process_at = order.get('in_process_at')
@@ -144,7 +144,8 @@ class OrdersOzon:
                                                     status=status2, date_of_order=date_of_order,
                                                     posting_number=posting_number, region=region, city=city,
                                                     delivery_type=delivery_type, warehous_id=warehous_id,
-                                                    warehouse_name=warehouse_name)
+                                                    warehouse_name=warehouse_name, marketplace_id=ozon_id,
+                                                    is_visible=True)
             OrdersOzon._add_product_in_order(order, order_save, user)
 
 
@@ -152,4 +153,4 @@ class OrdersOzon:
     def update_or_create_orders(api_key:str, ozon_id:str, user:User) -> None:
         orders = OrdersOzon.get_orders_in_json(api_key, ozon_id)
         for order in orders:
-            OrdersOzon._create_order(order, user)
+            OrdersOzon._create_order(order, user, ozon_id)

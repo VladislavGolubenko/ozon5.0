@@ -13,8 +13,16 @@ class TransactionOzon:
         # НУЖНО ИСПОЛЬЗОВАТЬ ДАТУ ПОСЛЕДНЕГО С 00:00:00 что бы подгружать транзакции не все
         #last_transaction= OzonTransactions.objects.all().order_by("-operation_date").first()
         #print(f"!!!!!!!! {last_transaction.operation_date}")
-        date_now = datetime.now() - timedelta(days=2)
-        date_from = date_now.strftime(f"%Y-%m-{date_now.day}T00:00:00Z")
+        # date_now = datetime.now() - timedelta(days=2)
+        # date_from = date_now.strftime(f"%Y-%m-{date_now.day}T00:00:00Z")
+        last_transaction = OzonTransactions.objects.filter(marketplace_id=ozon_id).order_by("operation_date").last()
+
+        if last_transaction is None:
+            date_now = datetime.now()
+            date_from = date_now.strftime(f"2021-02-01T00:00:00Z")
+        else:
+            last_date = last_transaction.operation_date - timedelta(days=2)
+            date_from = last_date.strftime(f"%Y-%m-%dT00:00:00Z")
         date_to = datetime.now().strftime("%Y-%m-%dT23:59:59Z")
         request_post = requests.post('https://api-seller.ozon.ru/v3/finance/transaction/list',
                                     json={
@@ -39,7 +47,6 @@ class TransactionOzon:
         total_page = TransactionOzon.get_total_pages(api_key, ozon_id)
         transactions = list()
         for page in range(total_page):
-            print(page+1)
             request_post = requests.post('https://api-seller.ozon.ru/v3/finance/transaction/list',
                                         json={
                                                 "filter": {
@@ -61,7 +68,7 @@ class TransactionOzon:
             transactions += (request_json.get('result').get('operations'))
         return transactions
 
-    def create_transaction(operation, user):
+    def create_one_transaction(operation, user, ozon_id):
         operation_id = operation.get('operation_id')
         operation_type = operation.get('operation_type')
         operation_date = operation.get('operation_date')
@@ -105,7 +112,8 @@ class TransactionOzon:
                                                             accruals_for_sale=accruals_for_sale,
                                                             sale_commission=sale_commission,
                                                             amount=amount, type=finance_type,
-                                                            posting_number=posting_number, services=services_array)
+                                                            posting_number=posting_number, services=services_array, marketplace_id=ozon_id,
+                                                            is_visible=True)
 
             for item in items:
                 sku = item['sku']
@@ -120,4 +128,4 @@ class TransactionOzon:
         #print(transactions)
         #operations = transactions
         for operation in operations:
-            TransactionOzon.create_transaction(operation, user)
+            TransactionOzon.create_one_transaction(operation, user, ozon_id)
