@@ -3,7 +3,7 @@ from rest_framework import serializers
 from .models import Marketplace
 from ..account.models import User
 import requests
-from .tasks import upload_products, upload_orders, upload_transactions, upload_stocks
+from .tasks import upload_products, upload_orders, upload_transactions, upload_stocks, return_marketplace
 from ..account.services.orders import OrdersOzon 
 
 
@@ -30,6 +30,8 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
 
         if api_key_isset.status_code == 200:
             valid = True
+            return_marketplace.delay(marketplace_id)
+
             upload_products.delay(
                 api_key=api_key,
                 client_id=marketplace_id,
@@ -79,6 +81,7 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
                                                'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
 
         if api_key_isset.status_code == 200:
+
             upload_products.delay(
                 api_key=api_key,
                 client_id=marketplace_id,

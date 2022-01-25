@@ -37,7 +37,7 @@ class OrderList(ListAPIView):
         "orderproduct_to_order__sku",
         ]
     def get_queryset(self):
-        return Order.objects.filter(user_id=self.request.user.pk)
+        return Order.objects.filter(user_id=self.request.user.pk, is_visible=True)
 
     # def post(self, request, format=None):
     #     serializer = OrderSerializer(data=request.data)
@@ -55,7 +55,7 @@ class OrderDetail(APIView):
 
     def get_object(self, pk):
         try:
-            return Order.objects.get(pk=pk)
+            return Order.objects.get(pk=pk, is_visible=True)
         except Order.DoesNotExist:
             raise Http404
 

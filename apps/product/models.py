@@ -8,11 +8,13 @@ from ..order.models import Order
 
 class ProductManager(models.Manager):
     def create_product(self, preview, ozon_product_id, sku, name, stock_balance, way_to_warehous, marketing_price,
-                       reserved, user_id, offer_id):
+                       reserved, user_id, offer_id, marketplace_id, is_visible):
 
         product = self.create(preview=preview, ozon_product_id=ozon_product_id, sku=sku, name=name,
                               stock_balance=stock_balance, way_to_warehous=way_to_warehous,
-                              marketing_price=marketing_price, reserved=reserved, user_id=user_id, offer_id=offer_id)
+                              marketing_price=marketing_price, reserved=reserved, user_id=user_id, offer_id=offer_id, 
+                              marketplace_id=marketplace_id,
+                              is_visible=is_visible)
         return product
 
 
@@ -58,6 +60,8 @@ class Product(models.Model):
     reserved = models.IntegerField(verbose_name="Зарезервировано", blank=True, null=True)
     creating_date = models.DateField(auto_now_add=True, blank=True, null=True)
     offer_id = models.CharField(max_length=100, null=True, verbose_name='артикул')
+    is_visible = models.BooleanField(default=True, verbose_name="Видимость товара")
+    marketplace_id = models.IntegerField(null=True, blank=True, verbose_name="ID маркетплейса")
     objects = ProductManager()
 
     @property
@@ -136,3 +140,10 @@ class ProductInOrder(models.Model):
         ordering = ['id']
 
     objects = ProductInOrderManager()
+
+
+# class Categories(models.Model):
+#     pass
+
+# class ArchiveCategories(models.Model):
+#     pass

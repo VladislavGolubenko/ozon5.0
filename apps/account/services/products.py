@@ -94,7 +94,8 @@ class ProductsOzon:
         """
         products = ProductsOzon.get_products_in_json(api_key, cliend_id)
         for product_json in products:
-            
+            # volume_weight
+            # category_id
             if product_json.get('visible') is True:
                 ozon_id = product_json.get('id')
                 preview = product_json.get('primary_image')
@@ -131,7 +132,8 @@ class ProductsOzon:
                     product.way_to_warehous=go_to_warehouse
                     product.marketing_price=marketing_price
                     product.user_id=user
-                    product.offer_id = offer_id
+                    product.offer_id = offer_id,
+                    is_visible=True
                     product.save()
                 else:
                     Product.objects.create_product(
@@ -144,5 +146,7 @@ class ProductsOzon:
                         way_to_warehous=go_to_warehouse,
                         marketing_price=marketing_price, 
                         user_id=user,
-                        offer_id = offer_id
+                        offer_id = offer_id,
+                        marketplace_id = cliend_id,
+                        is_visible=True
                         )

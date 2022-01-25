@@ -3,13 +3,13 @@ from django.db import models
 
 class OzonTransactionsManager(models.Manager):
     def create_ozon_transaction(self, user_id, operation_id, operation_type, operation_date, operation_type_name,
-                                accruals_for_sale, sale_commission, amount, type, posting_number, services):
+                                accruals_for_sale, sale_commission, amount, type, posting_number, services, marketplace_id, is_visible):
 
         ozon_transaction = self.create(user_id=user_id, operation_id=operation_id, operation_type=operation_type,
                                        operation_date=operation_date, operation_type_name=operation_type_name,
                                        accruals_for_sale=accruals_for_sale, sale_commission=sale_commission,
                                        amount=amount, type=type, posting_number=posting_number,
-                                       services=services)
+                                       services=services, marketplace_id=marketplace_id, is_visible=is_visible)
         return ozon_transaction
 
 
@@ -33,7 +33,8 @@ class OzonTransactions(models.Model):
     type = models.CharField(max_length=250, verbose_name="Тип")
     posting_number = models.CharField(max_length=500, verbose_name="Номер доставки")
     services = models.CharField(max_length=10000, verbose_name="Виды услуг")
-
+    is_visible = models.BooleanField(default=True, verbose_name="Видимость товара")
+    marketplace_id = models.IntegerField(null=True, blank=True, verbose_name="ID маркетплейса")
     product = models.ManyToManyField("product.ProductInOrder", related_name="product_in_transaction", blank=True, null=True)
 
     def __str__(self):

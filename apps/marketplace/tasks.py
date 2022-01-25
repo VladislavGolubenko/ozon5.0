@@ -6,7 +6,7 @@ from ..account.models import User
 from ..account.services.orders import OrdersOzon
 from ..account.services.transaction import TransactionOzon
 from ..account.services.stocks import StocksOzon
-
+from .services import set_is_visible_false
 
 # Работа с продуктами
 @app.task(name="upload_products")
@@ -76,3 +76,14 @@ def create_or_update_stocks_every_day(*args, **kwargs):
             marketplace_id = marketplace.marketplace_id
             api_key = marketplace.api_key
             StocksOzon.update_stocks(api_key, marketplace_id)
+
+
+@app.task(name="destroy_marketplace")
+def destroy_marketplace(marketplace_id:int):
+    """Удаление маркеплейса"""
+    set_is_visible_false(marketplace_id, False)
+
+@app.task(name="return_marketplace")
+def return_marketplace(marketplace_id:int):
+    """Возвращение всего из маркеплейса"""
+    set_is_visible_false(marketplace_id, True)
