@@ -123,7 +123,7 @@ class ProductInOrder(models.Model):
     unit_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена юнита')
     logistics_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена логистики')
     additional_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Дополнительные затраты')
-    summ_price = models.FloatField(blank=True, null=True, verbose_name='Итого')
+    summ_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Итого')
     creating_date = models.DateField(auto_now_add=True)
 
     def __str__(self):

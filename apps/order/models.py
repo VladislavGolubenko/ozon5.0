@@ -37,31 +37,33 @@ class Order(models.Model):
     creating_date = models.DateField(auto_now_add=True, blank=True, null=True)
     summ_comission = models.FloatField(blank=True, null=True, default=0, verbose_name='Сумма комиссий')
     amount = models.FloatField(blank=True, null=True, default=0, verbose_name='Прибыль')
+    quantity = models.IntegerField(blank=True, null=True, default=0, verbose_name='Количество')
+    order_sum = models.FloatField(blank=True, null=True, default=0, verbose_name='Сумма заказа')
 
     # @property
     # def get_product_in_order(self):
     #     products = ProductInOrder.objects.filter(order_id=self.pk)
     #     return products
 
-    def get_summ_comission(self):
-
-        comissions = OzonTransactions.objects.filter(posting_number=self.posting_number)
-        comissions_summ = 0
-
-        for comission in comissions:
-            comissions_summ += (comission.sale_commission)
-
-        return comissions_summ
-
-    def get_amount(self):
-
-        amounts = OzonTransactions.objects.filter(posting_number=self.posting_number)
-        amounts_summ = 0
-
-        for amount in amounts:
-            amounts_summ += (amount.amount)
-
-        return amounts_summ
+    # def get_summ_comission(self):
+    #
+    #     comissions = OzonTransactions.objects.filter(posting_number=self.posting_number)
+    #     comissions_summ = 0
+    #
+    #     for comission in comissions:
+    #         comissions_summ += (comission.sale_commission)
+    #
+    #     return comissions_summ
+    #
+    # def get_amount(self):
+    #
+    #     amounts = OzonTransactions.objects.filter(posting_number=self.posting_number)
+    #     amounts_summ = 0
+    #
+    #     for amount in amounts:
+    #         amounts_summ += (amount.amount)
+    #
+    #     return amounts_summ
 
         # products_price_query = ProductInOrder.objects.filter(order_id=self.pk).aggregate(Sum('summ_price'))
         # products_price = products_price_query['summ_price__sum'] if products_price_query['summ_price__sum'] is not None else 0

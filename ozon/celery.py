@@ -30,9 +30,10 @@ app.conf.beat_schedule = {
     },
 
     # Поля комиссии и выручка у заказов
-    'update_order_field': {
-        'task': 'update_order_field',
-        'schedule': 32,#crontab(minute=18, hour=17),
+    'update_order_fields_every_day': {
+        'task': 'update_order_fields_every_day',
+        'schedule': 33,
+        # 'schedule': 32,#crontab(minute=18, hour=17),
     }
 
 

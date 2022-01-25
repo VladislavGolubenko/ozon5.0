@@ -10,6 +10,8 @@ from django_filters import rest_framework as filters
 from ..account.permissions import IsSubscription
 from .models import Order
 from .serializers import OrderSerializer
+from ..ozon_transaction.models import OzonTransactions
+from ..product.models import ProductInOrder
 
 
 class OrderList(ListAPIView):

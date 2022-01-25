@@ -97,9 +97,6 @@ class ProductDetailAction(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-
-
-
 class WarehouseAccountView(APIView):
     """
         Складской учет
@@ -189,6 +186,7 @@ class CompanyDashbordView(APIView):
                 return Response(data, status=status.HTTP_200_OK)
 
         raise ValueError("The given date must be set")
+
 
 class ProductInOrderSet(APIView):
     permission_classes = [permissions.IsAuthenticated]

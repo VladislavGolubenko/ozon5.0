@@ -52,13 +52,23 @@ def create_or_update_orders_every_day(*args, **kwargs):
             OrdersOzon.update_or_create_orders(api_key, marketplace_id, user)
 
 
-@app.task(bind=True, name="update_order_field")
+@app.task(name="update_order_field")
 def update_order_field(user_id):
 
-    """Подсчет полей сумма комиссий и выручка"""
+    """Подсчет полей сумма комиссий и выручка, кол-во, сумма заказа"""
 
     user = User.objects.get(pk=user_id)
-    OrdersOzon.update_order_fields(user)
+    OrdersOzon.update_order_fields(user=user)
+
+
+@app.task(bind=True, name="update_order_fields_every_day")
+def update_order_fields_every_day(*args, **kwargs):
+
+    """постоянное обновление денежных полей заказа"""
+
+    for user in User.objects.all():
+        OrdersOzon.update_order_fields(user=user)
+
 
 
 # Работа с транзакциями озона

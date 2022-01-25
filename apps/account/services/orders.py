@@ -39,6 +39,7 @@ class OrdersOzon:
         }
         response = requests.request("POST", url, headers=headers, data=payload)
         return response
+
     def get_orders_in_json(api_key:str, ozon_id:str) -> list:
         request_post = OrdersOzon._get_orders(api_key, ozon_id)
         if request_post.json().get('messege', None) == 'Invalid Api-Key, please contact support':
@@ -149,34 +150,34 @@ class OrdersOzon:
             OrdersOzon._add_product_in_order(order, order_save, user)
 
     @staticmethod
-    def update_or_create_orders(api_key:str, ozon_id:str, user:User) -> None:
+    def update_or_create_orders(api_key: str, ozon_id: str, user: User) -> None:
         orders = OrdersOzon.get_orders_in_json(api_key, ozon_id)
         for order in orders:
             OrdersOzon._create_order(order, user)
 
     @staticmethod
     def update_order_fields(user: User) -> None:
-        orders = Order.objects.filter(user_id=user)
+
+        orders = Order.objects.filter(user_id=user.pk)
         for order in orders:
             amounts_summ = 0
-            comissions_summ = 0
             transactions = OzonTransactions.objects.filter(posting_number=order.posting_number)
 
             for transaction in transactions:
-                if not transaction.services:
-                    services = 0
-                else:
-                    services_list = transaction.services
-                    id = 0
-                    services = 0
-                    for object in services_list:
-                        services += int(object[id]['price'])
-                        id += 1
-                comission = transaction.sale_commission + services
-                comissions_summ += comission
                 amounts_summ += transaction.amount
-            order.amount = amounts_summ
-            order.summ_comission = comissions_summ
-            order.save()
 
+            product_in_order = ProductInOrder.objects.filter(order_id=order.pk)
+            order_summ = 0  # Cумма заказа
+            quantity = 0
+            for product in product_in_order:
+                order_summ += product.quantity * product.price_f
+                quantity += product.quantity
+            summ_comission = amounts_summ - order_summ
 
+            update_order = Order.objects.get(pk=order.pk)
+
+            update_order.amount = amounts_summ if order.status == "delivered" or order.status == "cancelled" else None
+            update_order.summ_comission = summ_comission
+            update_order.quantity = quantity
+            update_order.order_sum = order_summ
+            update_order.save()
