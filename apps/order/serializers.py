@@ -12,7 +12,7 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = ('id', 'user_id', 'order_number', 'date_of_order', 'in_process_at', 'status', 'posting_number',
                   'region', 'city', 'delivery_type', 'warehous_id', 'warehouse_name', 'creating_date',
-                  'get_product_in_order', 'summ_comission', 'amount', 'quantity', 'order_sum', "get_summ_comission", 'get_amount')
+                  'get_product_in_order', 'summ_comission', 'amount', 'quantity', 'order_sum',)
 
     def fun_get_product_in_order(self, instance):
         products = ProductInOrder.objects.filter(order_id=instance.pk)
