@@ -22,7 +22,6 @@ class OrderManager(models.Manager):
 class Order(models.Model):
 
     user_id = models.ForeignKey("account.User", on_delete=models.CASCADE, related_name="order_to_user", null=True, blank=True)
-
     order_number = models.CharField(max_length=500, verbose_name="Номер заказа")
     date_of_order = models.DateTimeField(auto_now=False, auto_now_add=False,
                                          verbose_name="Дата и время размещения заказа")
@@ -37,28 +36,36 @@ class Order(models.Model):
     warehouse_name = models.CharField(max_length=500, verbose_name="Склад отгрузки", blank=True, null=True)
     marketplace_id = models.IntegerField(null=True, blank=True, verbose_name="ID маркетплейса")
     creating_date = models.DateField(auto_now_add=True, blank=True, null=True)
+    summ_comission = models.FloatField(blank=True, null=True, default=0, verbose_name='Сумма комиссий')
+    amount = models.FloatField(blank=True, null=True, default=0, verbose_name='Прибыль')
+    quantity = models.IntegerField(blank=True, null=True, default=0, verbose_name='Количество')
+    order_sum = models.FloatField(blank=True, null=True, default=0, verbose_name='Сумма заказа')
+
     is_visible = models.BooleanField(default=True, verbose_name="Видимость товара")
     # @property
     # def get_product_in_order(self):
     #     products = ProductInOrder.objects.filter(order_id=self.pk)
     #     return products
 
-    def get_summ_comission(self):
-        comissions = OzonTransactions.objects.filter(posting_number=self.posting_number)
-        comissions_summ = 0
-
-        for comission in comissions:
-            comissions_summ += (comission.sale_commission)
-        return comissions_summ
-
-    def get_amount(self):
-
-        amounts = OzonTransactions.objects.filter(posting_number=self.posting_number)
-        amounts_summ = 0
-
-        for amount in amounts:
-            amounts_summ += (amount.amount)
-        return amounts_summ
+    # def get_summ_comission(self):
+    #
+    #     comissions = OzonTransactions.objects.filter(posting_number=self.posting_number)
+    #     comissions_summ = 0
+    #
+    #     for comission in comissions:
+    #         comissions_summ += (comission.sale_commission)
+    #
+    #     return comissions_summ
+    #
+    # def get_amount(self):
+    #
+    #     amounts = OzonTransactions.objects.filter(posting_number=self.posting_number)
+    #     amounts_summ = 0
+    #
+    #     for amount in amounts:
+    #         amounts_summ += (amount.amount)
+    #
+    #     return amounts_summ
 
         # products_price_query = ProductInOrder.objects.filter(order_id=self.pk).aggregate(Sum('summ_price'))
         # products_price = products_price_query['summ_price__sum'] if products_price_query['summ_price__sum'] is not None else 0
@@ -71,7 +78,6 @@ class Order(models.Model):
         #
         # amount = products_price - comissions_summ
         # return amount
-
 
     def __str__(self):
         return str(self.order_number)

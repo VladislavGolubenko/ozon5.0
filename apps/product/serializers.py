@@ -65,11 +65,7 @@ class ProductInOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProductInOrder
-        fields = "__all__"
-
-
-
-
+        exclude = ("order_id", )
 
 
 class WarehouseAccountSerializer(serializers.Serializer):

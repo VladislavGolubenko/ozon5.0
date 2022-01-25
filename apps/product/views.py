@@ -23,6 +23,7 @@ from .service import (
 )
 from django.db.models import Q
 from .filters import ProductActualFilter
+from .filters import ProductActualFilter, WarehousFilterByList
 
 
 class ProductInOrderAction(RetrieveUpdateDestroyAPIView):
@@ -101,9 +102,6 @@ class ProductDetailAction(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-
-
-
 class WarehouseAccountView(APIView):
     """
         Складской учет
@@ -117,12 +115,13 @@ class WarehouseAccountView(APIView):
 
         # json_with_id = json.loads(request.body.decode("utf-8"))
         # id_of_user = json_with_id['id']
-        
+
         id_user = request.user.id
-        
+
         # print(request.user.id)
         search = request.query_params.get("search")
         days = int(request.query_params.get("days"))
+        actual = request.query_params.get("actual")
         print(days)
         print(isinstance(search, str))
         products = Product.objects.filter(user_id=id_user, is_visible=True)
@@ -149,15 +148,29 @@ class WarehouseAccountView(APIView):
         datas = []
 
         for product in products:
-
             data = warehous_account_function(product=product, days=days)
-
             datas.append(data)
-        #print(datas)
+
+        if actual is not None:
+            actual = True if actual == "True" or actual == '1' else False
+            # queryset = Product.objects.filter(user_id=self.request.user.pk)
+            datas = WarehousFilterByList.actual_warehous(self, data=datas, actual=actual)
+
         paginator = LimitOffsetPagination()
         result_page = paginator.paginate_queryset(datas, request)
 
         return Response(data=result_page, status=status.HTTP_200_OK)
+
+
+        # serializer = WarehouseAccountSerializer
+
+        # получение данных из тела запроса GET
+        # json_with_id = json.loads(request.body.decode("utf-8"))
+        # id_of_user = json_with_id['id']
+        # id_user = request.user.id
+
+        # print(request.user.id)
+
 
 
 # class ObjectInTableView(APIView):
@@ -210,6 +223,7 @@ class CompanyDashbordView(APIView):
                 return Response(data, status=status.HTTP_200_OK)
 
         raise ValueError("The given date must be set")
+
 
 class ProductInOrderSet(APIView):
     permission_classes = [permissions.IsAuthenticated]

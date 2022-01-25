@@ -9,6 +9,7 @@ from rest_framework import status
 from apps.metric.models import OzonMetrics
 from ..models import User
 from ...order.models import Order
+from ...ozon_transaction.models import OzonTransactions
 from ...product.models import Product, ProductInOrder
 
 
@@ -38,6 +39,7 @@ class OrdersOzon:
         }
         response = requests.request("POST", url, headers=headers, data=payload)
         return response
+
     def get_orders_in_json(api_key:str, ozon_id:str) -> list:
         request_post = OrdersOzon._get_orders(api_key, ozon_id)
         if request_post.json().get('messege', None) == 'Invalid Api-Key, please contact support':
@@ -139,7 +141,7 @@ class OrdersOzon:
             delivery_type = analitics_data.get('delivery_type')
         
         order_in_model = Order.objects.filter(posting_number=posting_number)
-        if len(order_in_model)==0:
+        if len(order_in_model) == 0:
             order_save = Order.objects.create_order(order_id=order_id, in_process_at=in_process_at, user_id=user,
                                                     status=status2, date_of_order=date_of_order,
                                                     posting_number=posting_number, region=region, city=city,
@@ -148,9 +150,35 @@ class OrdersOzon:
                                                     is_visible=True)
             OrdersOzon._add_product_in_order(order, order_save, user)
 
-
     @staticmethod
-    def update_or_create_orders(api_key:str, ozon_id:str, user:User) -> None:
+    def update_or_create_orders(api_key: str, ozon_id: str, user: User) -> None:
         orders = OrdersOzon.get_orders_in_json(api_key, ozon_id)
         for order in orders:
             OrdersOzon._create_order(order, user, ozon_id)
+
+    @staticmethod
+    def update_order_fields(user: User) -> None:
+
+        orders = Order.objects.filter(user_id=user.pk)
+        for order in orders:
+            amounts_summ = 0
+            transactions = OzonTransactions.objects.filter(posting_number=order.posting_number)
+
+            for transaction in transactions:
+                amounts_summ += transaction.amount
+
+            product_in_order = ProductInOrder.objects.filter(order_id=order.pk)
+            order_summ = 0  # Cумма заказа
+            quantity = 0
+            for product in product_in_order:
+                order_summ += product.quantity * product.price_f
+                quantity += product.quantity
+            summ_comission = amounts_summ - order_summ
+
+            update_order = Order.objects.get(pk=order.pk)
+
+            update_order.amount = amounts_summ if order.status == "delivered" or order.status == "cancelled" else None
+            update_order.summ_comission = summ_comission
+            update_order.quantity = quantity
+            update_order.order_sum = order_summ
+            update_order.save()
