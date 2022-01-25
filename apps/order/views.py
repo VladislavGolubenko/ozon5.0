@@ -21,9 +21,21 @@ class OrderList(ListAPIView):
 
     serializer_class = OrderSerializer
     pagination_class = LimitOffsetPagination
-    filter_backends = (filters.DjangoFilterBackend, OrderingFilter, SearchFilter)
+    filter_backends = (filters.DjangoFilterBackend, OrderingFilter, SearchFilter)  #CustomSearchFilter)
     ordering_fields = '__all__'
-    search_fields = ["order_number", "status", "posting_number", "region", "delivery_type", "warehous_id", "warehouse_name", "creating_date"]
+    search_fields = [
+        "order_number", 
+        "status", 
+        "posting_number", 
+        "region", 
+        "delivery_type", 
+        "warehous_id", 
+        "warehouse_name", 
+        "creating_date", 
+        "orderproduct_to_order__offer_id",
+        "orderproduct_to_order__name",
+        "orderproduct_to_order__sku",
+        ]
     def get_queryset(self):
         return Order.objects.filter(user_id=self.request.user.pk)
 

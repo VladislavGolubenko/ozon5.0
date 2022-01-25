@@ -35,8 +35,8 @@ class ProductInOrderAdmin(admin.ModelAdmin):
                     'payout', 'product_id', 'deliv_to_customer',
                     'return_not_deliv_to_customer', 'return_part_goods_customer', 'return_after_deliv_to_customer',
                     'creating_date')
-
-
+    search_fields = ("name",)
+    list_filter = ("order_id",)
 
 admin.site.register(Product, ProductAdmin)
 
