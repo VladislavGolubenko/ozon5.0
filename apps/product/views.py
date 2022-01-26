@@ -106,6 +106,30 @@ class WarehouseAccountView(APIView):
     """
         Складской учет
         Для поиска использовать параметр search
+        <h3>Response<h3>
+        <ul>
+        <li>preview - Превью</li>
+        <li>ozon_product_id - ID</li>
+        <li>sku - Артикул</li>
+        <li>name - Название</li>
+        <li>stock_balance - Остатки на складе</li>
+        <li>orders_by_period - Заказано товарa </li>
+        <li>orders_speed - Скорость заказа</li>
+        <li>days_for_production - Срок производства</li>
+        <li>reorder_days_of_supply - Глубина поставки</li>
+        <li>potencial_proceeds - Потенциальная выручка с остатков</li> 
+        <li>product_price - Стоимость товара</li>
+        <li>stocks_for_days - Осталось запасов на дней</li>
+        <li>need_to_order - Необходимо заказать (количество для заказа)</li> 
+        <li>stocks_cost_price - Себестоимость остатков</li>
+        <li>reorder_sum - Сумма перезаказа </li>
+        <li>status_of_product - Статус </li>
+        <li>reorder_date - Дата перезаказа</li>
+        <li>offer_id,</li>
+        <li>average_profit_unit - Средняя прибыль единицы товара</li>
+        <li>potential_profit_stocks - Потенциальная прибыль остатков</li>
+        <li>reorder_profit - Прибыль перезаказа</li>
+        </ul>
     """
 
     #permission_classes = [IsSubscription]
@@ -150,9 +174,10 @@ class WarehouseAccountView(APIView):
         for product in products:
             data = warehous_account_function(product=product, days=days)
             datas.append(data)
-
-        if actual is not None:
-            actual = True if actual == "True" or actual == '1' else False
+        print("actual: ", actual.strip()=='true')#, ((actual == "True") or (actual == '1') or (actual=='true')))
+        if actual is not None:  
+            actual = actual.strip()
+            actual = True if ((actual == "True") or (actual == '1') or (actual=='true')) else False
             # queryset = Product.objects.filter(user_id=self.request.user.pk)
             datas = WarehousFilterByList.actual_warehous(self, data=datas, actual=actual)
 

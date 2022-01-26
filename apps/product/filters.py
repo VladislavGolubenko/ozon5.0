@@ -25,11 +25,12 @@ class WarehousFilterByList:
     """
 
     def actual_warehous(self, data: list, actual: bool):
+        print(actual)
         if actual == True:
             new_data = list()
             for value in data:
-                if value['stocks_cost_price'] is not None:
-                    if value['stocks_cost_price'] > 0:
+                if value['stock_balance'] is not None:
+                    if value['stock_balance'] > 0:
                         new_data.append(value)
             return new_data
         else:
