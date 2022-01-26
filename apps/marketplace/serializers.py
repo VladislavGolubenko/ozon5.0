@@ -3,7 +3,7 @@ from rest_framework import serializers
 from .models import Marketplace
 from ..account.models import User
 import requests
-from .tasks import upload_products, upload_orders, upload_transactions, upload_stocks, update_order_field, return_marketplace
+from .tasks import upload_products, upload_orders, upload_transactions, upload_stocks, update_order_field, return_marketplace, commisions_products
 from ..account.services.orders import OrdersOzon 
 
 
@@ -50,6 +50,10 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
                 )
             update_order_field.delay(
                 user_id=user.pk,
+            )
+            commisions_products.delay(
+                api_key=api_key,
+                client_id=marketplace_id,
             )
         else:
             valid = False
@@ -102,6 +106,10 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
                 )
             update_order_field.delay(
                 user_id=user.pk
+            )
+            commisions_products.delay(
+                api_key=api_key,
+                client_id=marketplace_id,
             )
             valid = True
         else:
