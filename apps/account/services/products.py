@@ -1,4 +1,3 @@
-from requests.api import head
 from ozon.celery import app
 from ..models import User
 from rest_framework.response import Response
@@ -6,8 +5,35 @@ from rest_framework import status
 from datetime import datetime, date
 from datetime import timedelta
 import requests
-from ...product.models import Product
+from ...product.models import Product, Categories
 import json
+
+
+class CategoriesOzon:
+    """Класс для загрузки категорий с озона"""
+    def get_category_ozon(api_key:str, cliend_id:int, category_id:int) -> json:
+        url = "https://api-seller.ozon.ru/v2/category/tree"
+        print("category_id: ", category_id)
+        data = {
+                "category_id": int(category_id),
+                "language": "DEFAULT"
+                }
+        headers = {
+            'Client-Id': str(cliend_id), # ozon_ovner
+            'Api-Key': str(api_key) , # user_data.api_key
+            'Content-Type': 'application/json', 
+            'Host': 'api-seller.ozon.ru'
+            }
+        category = requests.post(url=url, headers=headers, json=data).json()
+        return category
+    
+    def get_category(category_id:int, name:str) -> Categories:
+        category = Categories.objects.filter(category_id=category_id, name=name).first()
+        if category is None: 
+            category = Categories.objects.create(category_id=category_id, name=name)
+        return category
+    
+
 
 
 class ProductsOzon:
@@ -99,7 +125,13 @@ class ProductsOzon:
             if product_json.get('visible') is True:
                 ozon_id = product_json.get('id')
                 preview = product_json.get('primary_image')
-                print(product_json.get('offer_id'))
+                volume_weight = product_json.get('volume_weight')
+                category_id = product_json.get('category_id')
+                category_json = CategoriesOzon.get_category_ozon(api_key, cliend_id, category_id)
+                print(category_json)
+                category_name = category_json.get("result")[0].get("title")
+                category_id_result = category_json.get("result")[0].get("category_id")
+                category = CategoriesOzon.get_category(category_id_result, category_name)
                 offer_id = product_json.get('offer_id')
                 marketing_price = product_json.get('marketing_price') 
                 if (marketing_price == 0.0) or (marketing_price is None) or (marketing_price==''):
@@ -133,7 +165,9 @@ class ProductsOzon:
                     product.marketing_price=marketing_price
                     product.user_id=user
                     product.offer_id = offer_id,
-                    is_visible=True
+                    product.is_visible=True
+                    product.volume_weight= volume_weight
+                    product.category = category
                     product.save()
                 else:
                     Product.objects.create_product(
@@ -148,5 +182,7 @@ class ProductsOzon:
                         user_id=user,
                         offer_id = offer_id,
                         marketplace_id = cliend_id,
-                        is_visible=True
+                        is_visible=True,
+                        volume_weight= volume_weight,
+                        category=category
                         )

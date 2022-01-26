@@ -6,6 +6,7 @@ from ..account.models import User
 from ..account.services.orders import OrdersOzon
 from ..account.services.transaction import TransactionOzon
 from ..account.services.stocks import StocksOzon
+from ..account.services.commisions_products import ProductOzonCommisions
 from .services import set_is_visible_false
 
 # Работа с продуктами
@@ -123,3 +124,16 @@ def destroy_marketplace(marketplace_id:int):
 def return_marketplace(marketplace_id:int):
     """Возвращение всего из маркеплейса"""
     set_is_visible_false(marketplace_id, True)
+
+
+@app.task(name="commisions_products")
+def commisions_products(api_key:str, client_id:str):
+    ProductOzonCommisions.update_commisions(api_key, client_id)
+
+@app.task(bind=True, name="commisions_products_every_day")
+def commisions_products_every_day(*args, **kwargs):
+    for user in User.objects.all():
+        for marketplace in user.marketplace_data.all():
+            marketplace_id = marketplace.marketplace_id
+            api_key = marketplace.api_key
+            ProductOzonCommisions.update_commisions(api_key, marketplace_id)

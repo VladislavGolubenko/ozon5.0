@@ -6,4 +6,5 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = ('user_id', 'order_number', 'date_of_order', 'in_process_at', 'status', 'posting_number', 'region',
                     'city', 'delivery_type', 'warehous_id', 'warehouse_name', 'creating_date')
     search_fields = ("order_number", "orderproduct_to_order__name")
+    list_filter = ("marketplace_id",)
 admin.site.register(Order, OrderAdmin)

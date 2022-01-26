@@ -12,7 +12,6 @@ class TransactionOzon:
     def get_total_pages(api_key:str, ozon_id:str):
         # НУЖНО ИСПОЛЬЗОВАТЬ ДАТУ ПОСЛЕДНЕГО С 00:00:00 что бы подгружать транзакции не все
         #last_transaction= OzonTransactions.objects.all().order_by("-operation_date").first()
-        #print(f"!!!!!!!! {last_transaction.operation_date}")
         # date_now = datetime.now() - timedelta(days=2)
         # date_from = date_now.strftime(f"%Y-%m-{date_now.day}T00:00:00Z")
         last_transaction = OzonTransactions.objects.filter(marketplace_id=ozon_id).order_by("operation_date").last()
@@ -43,6 +42,14 @@ class TransactionOzon:
         return page_count
 
     def get_transactions(api_key:str, ozon_id:str):
+        last_transaction = OzonTransactions.objects.filter(marketplace_id=ozon_id).order_by("operation_date").last()
+
+        if last_transaction is None:
+            date_now = datetime.now()
+            date_from = date_now.strftime(f"2021-02-01T00:00:00Z")
+        else:
+            last_date = last_transaction.operation_date - timedelta(days=2)
+            date_from = last_date.strftime(f"%Y-%m-%dT00:00:00Z")
         date_to = datetime.now().strftime("%Y-%m-%dT23:59:59Z")
         total_page = TransactionOzon.get_total_pages(api_key, ozon_id)
         transactions = list()
@@ -51,7 +58,7 @@ class TransactionOzon:
                                         json={
                                                 "filter": {
                                                     "date": {
-                                                        "from": "2021-02-01T00:00:00Z",
+                                                        "from": date_from,
                                                         "to": date_to,
                                                     },
 
@@ -128,9 +135,9 @@ class TransactionOzon:
                     product_relation = ProductInOrder.objects.filter(sku=sku, order_id=order.pk).first()
                     transaction_save.product.add(product_relation.pk)
 
+
     def create_transactions(api_key: str, ozon_id: str, user):
         operations = TransactionOzon.get_transactions(api_key, ozon_id)
-        #print(transactions)
         #operations = transactions
         for operation in operations:
             TransactionOzon.create_one_transaction(operation, user, ozon_id)

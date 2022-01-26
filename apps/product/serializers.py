@@ -1,10 +1,14 @@
 from rest_framework import serializers
 from .models import (
     Product,
-    ProductInOrder
+    ProductInOrder, 
+    Categories
 )
 
-
+class CategoriesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Categories
+        fields = ("name",)
 class ProductSerializer(serializers.ModelSerializer):
     '''
         изменение продукта представляет собой заполнение input полей (глубина поставки, дней для производства,
@@ -22,7 +26,8 @@ class ProductSerializer(serializers.ModelSerializer):
     ozon_product_id = serializers.CharField(required=False)
     sku = serializers.CharField(required=False)
     name = serializers.CharField(required=False)
-
+    #category = CategoriesSerializer()
+    category = serializers.CharField(source='category.name')
     def update(self, instance, validated_data):
         user_id = self.context['request'].user
         sku = self.context['sku']
@@ -58,8 +63,18 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = ("id", "preview", "ozon_product_id", "sku", "name", "days_for_production", "reorder_days_of_supply",
                   "unit_price", "logistics_price", "additional_price", "summ_price",  "marketing_price",
-                  "order_for_thirty_days", "stock_balance", "offer_id")
-
+                  "order_for_thirty_days", "stock_balance", "offer_id", "volume_weight", "category",
+                  "sales_percent", "fbo_fulfillment_amount", "fbo_direct_flow_trans_min_amount", "fbo_direct_flow_trans_max_amount",
+                  "fbo_deliv_to_customer_amount", "lower_range_limit", "upper_range_limit")
+"""
+sales_percent
+fbo_fulfillment_amount
+fbo_direct_flow_trans_min_amount
+fbo_direct_flow_trans_max_amount
+fbo_deliv_to_customer_amount
+lower_range_limit
+upper_range_limit
+"""
 
 class ProductInOrderSerializer(serializers.ModelSerializer):
 
