@@ -1,7 +1,7 @@
 from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.filters import OrderingFilter
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework import status
 from rest_framework.response import Response
 from django.http import Http404
@@ -24,9 +24,21 @@ class OrderList(ListAPIView):
 
     serializer_class = OrderSerializer
     pagination_class = LimitOffsetPagination
-    filter_backends = (filters.DjangoFilterBackend, OrderingFilter,)
+    filter_backends = (filters.DjangoFilterBackend, OrderingFilter, SearchFilter)  #CustomSearchFilter)
     ordering_fields = '__all__'
-
+    search_fields = [
+        "order_number", 
+        "status", 
+        "posting_number", 
+        "region", 
+        "delivery_type", 
+        "warehous_id", 
+        "warehouse_name", 
+        "creating_date", 
+        "orderproduct_to_order__offer_id",
+        "orderproduct_to_order__name",
+        "orderproduct_to_order__sku",
+        ]
     def get_queryset(self):
         queryset = Order.objects.filter(user_id=self.request.user.pk)
         status_queryset = OrderFilter.order_status_filter(self, queryset=queryset)
@@ -48,7 +60,7 @@ class OrderDetail(APIView):
 
     def get_object(self, pk):
         try:
-            return Order.objects.get(pk=pk)
+            return Order.objects.get(pk=pk, is_visible=True)
         except Order.DoesNotExist:
             raise Http404
 

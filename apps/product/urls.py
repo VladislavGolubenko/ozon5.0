@@ -4,7 +4,7 @@ from .views import ProductListAction, ProductDetailAction, WarehouseAccountView,
 urlpatterns = [
     path('product/', ProductListAction.as_view()),
     path('product/<int:pk>/', ProductDetailAction.as_view()),
-    path('warehouse_control/<int:days>/', WarehouseAccountView.as_view()),
+    path('warehouse_control/', WarehouseAccountView.as_view()),
     path('product_order/', ProductInOrderAction.as_view()),
     # path('object_in_table/<slug:table>/', views.ObjectInTableView().as_view()),
     path('analitic_company/', CompanyDashbordView.as_view()),

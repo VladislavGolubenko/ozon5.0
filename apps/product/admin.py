@@ -7,7 +7,7 @@ from .models import *
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('get_photo', 'user_id', 'ozon_product_id', 'marketing_price', 'sku', 'name', 'stock_balance',
                     'way_to_warehous', 'unit_price', 'logistics_price', 'additional_price', 'summ_price',
-                    'reorder_days_of_supply', 'days_for_production')
+                    'reorder_days_of_supply', 'days_for_production', 'is_visible')
 
     readonly_fields = ('summ_price',)
 
@@ -15,7 +15,7 @@ class ProductAdmin(admin.ModelAdmin):
         (None, {
             'fields': ('preview', 'user_id', 'ozon_product_id', 'marketing_price','sku', 'name', 'unit_price',
                        'logistics_price', 'additional_price', 'summ_price', 'reorder_days_of_supply',
-                       'days_for_production')
+                       'days_for_production', 'is_visible')
         }),
     )
 
@@ -35,8 +35,8 @@ class ProductInOrderAdmin(admin.ModelAdmin):
                     'payout', 'product_id', 'deliv_to_customer',
                     'return_not_deliv_to_customer', 'return_part_goods_customer', 'return_after_deliv_to_customer',
                     'creating_date')
-
-
+    search_fields = ("name",)
+    list_filter = ("order_id",)
 
 admin.site.register(Product, ProductAdmin)
 

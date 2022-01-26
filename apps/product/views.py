@@ -1,7 +1,7 @@
 import json
 from django.http import Http404
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.filters import OrderingFilter
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework import status
 from rest_framework.response import Response
@@ -15,12 +15,14 @@ from .serializers import (
 from rest_framework import permissions
 from ..account.permissions import IsSubscription
 from .models import Product, ProductInOrder
-
+from rest_framework.permissions import IsAuthenticated
 from datetime import timedelta, datetime
 from .service import (
     warehous_account_function,
     company_dashbord_function,
 )
+from django.db.models import Q
+from .filters import ProductActualFilter
 from .filters import ProductActualFilter, WarehousFilterByList
 
 
@@ -33,8 +35,10 @@ class ProductInOrderAction(RetrieveUpdateDestroyAPIView):
     queryset = ProductInOrder.objects.all()
     serializer_class = ProductInOrderSerializer
     pagination_class = LimitOffsetPagination
-    filter_backends = (OrderingFilter,)
+    filter_backends = (OrderingFilter, SearchFilter)
     ordering_fields = '__all__'
+    search_fields = ['sku', 'name', 'product_id', 'offer_id']
+
 
     def get_queryset(self):
         return ProductInOrder.objects.filter(user_id=self.request.user.pk)
@@ -46,21 +50,22 @@ class ProductListAction(ListCreateAPIView):
     """
     permission_classes = [permissions.IsAuthenticated]#[IsSubscription]
 
-    queryset = Product.objects.all()
+    queryset = Product.objects.filter(is_visible=True)
     serializer_class = ProductSerializer
     pagination_class = LimitOffsetPagination
-    filter_backends = (OrderingFilter,)
+    filter_backends = (OrderingFilter, SearchFilter)
     ordering_fields = '__all__'
-
+    search_fields = ['sku', 'name', 'ozon_product_id', 'offer_id']
     def get_queryset(self):
 
         actual = self.request.GET.get('actual')  # Получаем True/False (актуальный ли товар) для фильтра
+
         if actual is not None:
             actual = True if actual == "True" or actual == '1' else False
-            queryset = Product.objects.filter(user_id=self.request.user.pk)
+            queryset = Product.objects.filter(user_id=self.request.user.pk, is_visible=True)
             return ProductActualFilter.actual_products(self, queryset=queryset, actual=actual)
 
-        return Product.objects.filter(user_id=self.request.user.pk)
+        return Product.objects.filter(user_id=self.request.user.pk, is_visible=True)
 
     def perform_create(self, serializer):
         return serializer.save()
@@ -70,11 +75,11 @@ class ProductDetailAction(APIView):
     """
         Конкретный товар
     """
-    permission_classes = [IsSubscription]
+    permission_classes = [IsAuthenticated, IsSubscription]
 
     def get_object(self, pk):
         try:
-            return Product.objects.get(pk=pk)
+            return Product.objects.get(pk=pk, is_visible=True)
         except Product.DoesNotExist:
             raise Http404
 
@@ -100,14 +105,46 @@ class ProductDetailAction(APIView):
 class WarehouseAccountView(APIView):
     """
         Складской учет
+        Для поиска использовать параметр search
     """
 
     #permission_classes = [IsSubscription]
+    def get(self, request):
 
-    def get(self, request, days):
+        # serializer = WarehouseAccountSerializer
 
-        actual = self.request.GET.get('actual')  # Получаем True/False (актуальный ли товар) для фильтра
-        products = Product.objects.filter(user_id=self.request.user.pk)
+        # json_with_id = json.loads(request.body.decode("utf-8"))
+        # id_of_user = json_with_id['id']
+
+        id_user = request.user.id
+
+        # print(request.user.id)
+        search = request.query_params.get("search")
+        days = int(request.query_params.get("days"))
+        actual = request.query_params.get("actual")
+        print(days)
+        print(isinstance(search, str))
+        products = Product.objects.filter(user_id=id_user, is_visible=True)
+
+        if (search is not None) and (search !=''):
+
+            try:
+                if isinstance(int(search), int):
+
+                    products = products.filter(
+                                                Q(sku__contains=search)
+                                                | Q(name__contains=search)
+                                                | Q(ozon_product_id=search)
+                                                | Q(offer_id=search)
+                                            )
+            except:
+                products = products.filter(
+                                                Q(sku__contains=search)
+                                                | Q(name__contains=search)
+                                                | Q(offer_id=search)
+                                            )
+
+
         datas = []
 
         for product in products:
@@ -131,9 +168,9 @@ class WarehouseAccountView(APIView):
         # json_with_id = json.loads(request.body.decode("utf-8"))
         # id_of_user = json_with_id['id']
         # id_user = request.user.id
-        
+
         # print(request.user.id)
-        
+
 
 
 # class ObjectInTableView(APIView):
@@ -161,7 +198,7 @@ class WarehouseAccountView(APIView):
 
 
 class CompanyDashbordView(APIView):
-    permission_classes = [IsSubscription]
+    permission_classes = [IsAuthenticated, IsSubscription]
 
     """
     Aналитичская информация компании

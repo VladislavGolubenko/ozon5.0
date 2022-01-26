@@ -10,12 +10,12 @@ from django.db.models import Sum
 
 class OrderManager(models.Manager):
     def create_order(self, in_process_at, user_id, status, date_of_order,
-                     posting_number, region, city, delivery_type, warehous_id, warehouse_name, order_id=None):
+                     posting_number, region, city, delivery_type, warehous_id, warehouse_name, marketplace_id, is_visible, order_id=None):
 
         order = self.create(order_number=order_id, in_process_at=in_process_at, user_id=user_id,
                             status=status, date_of_order=date_of_order,
                             posting_number=posting_number, region=region, city=city, delivery_type=delivery_type,
-                            warehous_id=warehous_id, warehouse_name=warehouse_name)
+                            warehous_id=warehous_id, warehouse_name=warehouse_name, marketplace_id=marketplace_id, is_visible=is_visible)
         return order
 
 
@@ -34,12 +34,14 @@ class Order(models.Model):
     delivery_type = models.CharField(max_length=100, verbose_name="Тип доставки", blank=True, null=True)
     warehous_id = models.BigIntegerField(verbose_name="ID склада", blank=True, null=True)
     warehouse_name = models.CharField(max_length=500, verbose_name="Склад отгрузки", blank=True, null=True)
+    marketplace_id = models.IntegerField(null=True, blank=True, verbose_name="ID маркетплейса")
     creating_date = models.DateField(auto_now_add=True, blank=True, null=True)
     summ_comission = models.FloatField(blank=True, null=True, default=0, verbose_name='Сумма комиссий')
     amount = models.FloatField(blank=True, null=True, default=0, verbose_name='Прибыль')
     quantity = models.IntegerField(blank=True, null=True, default=0, verbose_name='Количество')
     order_sum = models.FloatField(blank=True, null=True, default=0, verbose_name='Сумма заказа')
 
+    is_visible = models.BooleanField(default=True, verbose_name="Видимость товара")
     # @property
     # def get_product_in_order(self):
     #     products = ProductInOrder.objects.filter(order_id=self.pk)

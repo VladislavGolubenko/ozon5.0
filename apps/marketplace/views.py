@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Marketplace
 from .serializers import CreateMarketplaceSerializer, ViewMarketplaceSerializer
 from .permissions import IsOwnerMarketplace
-
+from .tasks import destroy_marketplace
 
 class MarketplaceList(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -21,6 +21,7 @@ class MarketplaceList(ListCreateAPIView):
             return CreateMarketplaceSerializer
         #return super().get_serializer_class()
     
+    
 class MarketplaceDetail(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, IsOwnerMarketplace]
 
@@ -34,3 +35,8 @@ class MarketplaceDetail(RetrieveUpdateDestroyAPIView):
     # def get_queryset(self):
     #     queryset = Marketplace.objects.filter(user=self.request.user)
     #     return queryset
+    def destroy(self, request, *args, **kwargs):
+        pk = kwargs.get("pk")
+        marketplace = Marketplace.objects.get(pk=pk)
+        destroy_marketplace.delay(marketplace.marketplace_id)
+        return super().destroy(request, *args, **kwargs)

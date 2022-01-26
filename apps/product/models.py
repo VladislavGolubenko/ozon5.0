@@ -8,11 +8,13 @@ from ..order.models import Order
 
 class ProductManager(models.Manager):
     def create_product(self, preview, ozon_product_id, sku, name, stock_balance, way_to_warehous, marketing_price,
-                       reserved, user_id):
+                       reserved, user_id, offer_id, marketplace_id, is_visible, volume_weight, category):
 
         product = self.create(preview=preview, ozon_product_id=ozon_product_id, sku=sku, name=name,
                               stock_balance=stock_balance, way_to_warehous=way_to_warehous,
-                              marketing_price=marketing_price, reserved=reserved, user_id=user_id)
+                              marketing_price=marketing_price, reserved=reserved, user_id=user_id, offer_id=offer_id, 
+                              marketplace_id=marketplace_id,
+                              is_visible=is_visible, volume_weight=volume_weight, category=category)
         return product
 
 
@@ -51,12 +53,24 @@ class Product(models.Model):
     unit_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена юнита')
     logistics_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена логистики')
     additional_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Дополнительные затраты')
-    summ_price = models.FloatField(blank=True, null=True, verbose_name='Итого')
+    summ_price = models.FloatField(default=0, verbose_name='Итого')
     marketing_price = models.FloatField(blank=True, null=True, default=0, verbose_name='Цена')
     stock_balance = models.IntegerField(verbose_name="Остатки на складе", null=True)
     way_to_warehous = models.IntegerField(verbose_name="В пути на склад", null=True)
     reserved = models.IntegerField(verbose_name="Зарезервировано", blank=True, null=True)
     creating_date = models.DateField(auto_now_add=True, blank=True, null=True)
+    offer_id = models.CharField(max_length=100, null=True, verbose_name='артикул')
+    is_visible = models.BooleanField(default=True, verbose_name="Видимость товара")
+    marketplace_id = models.IntegerField(null=True, blank=True, verbose_name="ID маркетплейса")
+    category = models.ForeignKey("Categories", null=True, blank=True, on_delete=models.SET_NULL, verbose_name="Категория")
+    volume_weight = models.FloatField(default=0, verbose_name="Вес")
+    sales_percent = models.FloatField(default=0)
+    fbo_fulfillment_amount  = models.FloatField(default=0)
+    fbo_direct_flow_trans_min_amount = models.FloatField(default=0)
+    fbo_direct_flow_trans_max_amount = models.FloatField(default=0)
+    fbo_deliv_to_customer_amount = models.FloatField(default=0)
+    lower_range_limit = models.FloatField(default=0, verbose_name="Нижняя граница диапазона")
+    upper_range_limit = models.FloatField(default=0, verbose_name="Верхняя граница диапазона")
     objects = ProductManager()
 
     @property
@@ -135,3 +149,18 @@ class ProductInOrder(models.Model):
         ordering = ['id']
 
     objects = ProductInOrderManager()
+
+
+class Categories(models.Model):
+    category_id = models.IntegerField(verbose_name="ID категории")
+    name = models.CharField(max_length=255, verbose_name="Название")
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Категорию'
+        verbose_name_plural = 'Категории'
+        ordering = ['name']
+
+# class ArchiveCategories(models.Model):
+#     pass
