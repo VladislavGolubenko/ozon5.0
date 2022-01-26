@@ -8,7 +8,7 @@ class OrderFilter(django_filters.FilterSet):
         Фильтр по дате заказа и статусу
     """
     def order_date_filter(self,  queryset):
-        date = int(self.request.GET.get('date'))
+        date = int(self.request.GET.get('days'))
 
         if date is not None:
             start_date = datetime.now() - timedelta(date)
