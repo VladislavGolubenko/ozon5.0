@@ -40,7 +40,7 @@ class OrderList(ListAPIView):
         "orderproduct_to_order__sku",
         ]
     def get_queryset(self):
-        queryset = Order.objects.filter(user_id=self.request.user.pk)
+        queryset = Order.objects.filter(user_id=self.request.user.pk, is_visible=True)
         status_queryset = OrderFilter.order_status_filter(self, queryset=queryset)
         return OrderFilter.order_date_filter(self, queryset=status_queryset)
 
