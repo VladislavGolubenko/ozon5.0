@@ -36,7 +36,7 @@ app.conf.beat_schedule = {
     }
 
 
-    # # Поля комиссии и выручка у заказов
+    # # Обновление коммисий продуктов
     # 'commisions_products_every_day': {
     #     'task': 'commisions_products_every_day',
     #     'schedule': crontab(hour="*/1"),
