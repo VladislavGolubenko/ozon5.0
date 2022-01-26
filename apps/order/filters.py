@@ -1,38 +1,38 @@
+from datetime import datetime, timedelta
 import django_filters
 from .models import *
 
 
 class OrderFilter(django_filters.FilterSet):
     """
-        Фильтр по полям комиссии и выручки в заказах
+        Фильтр по дате заказа и статусу
     """
+    def order_date_filter(self,  queryset):
+        date = int(self.request.GET.get('date'))
 
-    def comission_filter(self, queryset, order):
-
-        comissions = OzonTransactions.objects.filter(posting_number=self.posting_number)
-        comissions_summ = 0
-
-        for comission in comissions:
-            comissions_summ += (comission.sale_commission)
-
-        if order == 'ask':
-            pass
-        elif order == 'desk':
-            pass
+        if date is not None:
+            start_date = datetime.now() - timedelta(date)
+            return queryset.filter(date_of_order__gte=start_date)
         else:
             return queryset
 
-    def amount_filter(self, queryset, order):
+    def order_status_filter(self, queryset):
+        status = self.request.GET.get('status')
+        status_tuple = (
+            'awaiting_approve',
+            'awaiting_packaging',
+            'awaiting_deliver',
+            'delivering',
+            'delivered',
+            'cancelled',
+        )
 
-        amounts = OzonTransactions.objects.filter(posting_number=self.posting_number)
-        amounts_summ = 0
-
-        for amount in amounts:
-            amounts_summ += (amount.amount)
-
-        if order == "ask":
-            pass
-        elif order == "desk":
-            pass
+        if status in status_tuple:
+            return queryset.filter(status=status)
         else:
             return queryset
+
+    class Meta:
+        model = Order
+        fields = ['date_of_order', 'status']
+
