@@ -10,6 +10,7 @@ from django_filters import rest_framework as filters
 from ..account.permissions import IsSubscription
 from .models import Order
 from .serializers import OrderSerializer
+from .filters import OrderFilter
 from ..ozon_transaction.models import OzonTransactions
 from ..product.models import ProductInOrder
 
@@ -27,7 +28,9 @@ class OrderList(ListAPIView):
     ordering_fields = '__all__'
 
     def get_queryset(self):
-        return Order.objects.filter(user_id=self.request.user.pk)
+        queryset = Order.objects.filter(user_id=self.request.user.pk)
+        status_queryset = OrderFilter.order_status_filter(self, queryset=queryset)
+        return OrderFilter.order_date_filter(self, queryset=status_queryset)
 
     # def post(self, request, format=None):
     #     serializer = OrderSerializer(data=request.data)
