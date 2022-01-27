@@ -67,7 +67,7 @@ class TransactionOzon:
                                                 "page": page+1,
                                                 "page_size": 100
                                             },
-                                        headers={'Client-Id': ozon_id, 'Api-Key': api_key,
+                                        headers={'Client-Id': str(ozon_id), 'Api-Key': str(api_key),
                                                 'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
             request_json = request_post.json()
             if request_json.get('messege', None) == 'Invalid Api-Key, please contact support':

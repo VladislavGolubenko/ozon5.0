@@ -45,7 +45,7 @@ def get_order(api_key, client_id, user_id):
                                            "financial_data": True,
                                        }
                                        },
-                                 headers={'Client-Id': client_id, 'Api-Key': api_key,
+                                 headers={'Client-Id': str(client_id), 'Api-Key': str(api_key),
                                           'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
     request_json = request_post.json()
 
@@ -197,7 +197,7 @@ def get_ozon_transaction(api_key, client_id, user_id):
                                         "page": 1,
                                         "page_size": 10000
                                     },
-                                 headers={'Client-Id': client_id, 'Api-Key': api_key,
+                                 headers={'Client-Id': str(client_id), 'Api-Key': str(api_key),
                                           'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
     request_json = request_post.json()
     if request_json.get('messege', None) == 'Invalid Api-Key, please contact support':

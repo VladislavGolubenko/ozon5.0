@@ -169,7 +169,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def return_status(self):
         api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list', headers={'Client-Id': str(self.ozon_id),
-                                                                                             'Api-Key': self.api_key,
+                                                                                             'Api-Key': str(self.api_key),
                                                                                              'Content-Type': 'application/json',
                                                                                              'Host': 'api-seller.ozon.ru'})
         if api_key_isset.status_code == 200:

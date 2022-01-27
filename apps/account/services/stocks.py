@@ -8,8 +8,8 @@ class StocksOzon:
     def get_stocks(api_key:str, ozon_id:str):
         url = "https://api-seller.ozon.ru/v2/product/info/stocks"
         headers = {
-            "Client-Id": ozon_id,
-            "Api-Key": api_key
+            "Client-Id": str(ozon_id),
+            "Api-Key": str(api_key)
         } 
         stocks = requests.post(url=url, headers=headers)
         return stocks.json().get("result").get("items")

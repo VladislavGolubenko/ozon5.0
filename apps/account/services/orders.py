@@ -32,8 +32,8 @@ class OrdersOzon:
             }) 
         #"{\n            \"dir\": \"asc\",\n            \"filter\": {\n                \"since\": \"2021-02-01T00:00:00Z\", \n                \"to\": \"2022-01-18T23:59:59Z\"\n                },\n                \"limit\": 1000,\n                \"with\": {\n                \"analytics_data\": true,\n                \"financial_data\": true\n                }\n            }"
         headers = {
-        'Client-Id': f'{ozon_id}',
-        'Api-Key': f'{api_key}',
+        'Client-Id': str(ozon_id),
+        'Api-Key': str(api_key),
         'Content-Type': 'text/plain',
         #'Cookie': 'incap_ses_374_2701794=9OsrZWgeBHwk9MUnh7cwBZ+B5mEAAAAA8rygrrIinR09oktZDQdf6w==; nlbi_2701794=twFoCq7VjgRvFh+ah6p8LAAAAAB0/HlCB5ou3THO4oCyt7mr; visid_incap_2701794=GBOT5EKwQzCRt3d2f91jH5yB5mEAAAAAQUIPAAAAAADzTW4RPiEO/i3NSHCVAkym'
         }

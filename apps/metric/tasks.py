@@ -26,7 +26,7 @@ def get_each_analitic_data(api_key:str, marketplace_id:str, metrics:list)->list:
                                             #     }
                                             # ]
                                         },
-                                    headers={'Client-Id': marketplace_id, 'Api-Key': api_key,
+                                    headers={'Client-Id': str(marketplace_id), 'Api-Key': str(api_key),
                                             'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
     request_json = request_post.json()
     #print(request_json)
@@ -198,7 +198,7 @@ def update_analitics_data(*args, **kwargs):
                                             }
                                         ]
                                     },
-                                    headers={'Client-Id': marketplace_id, 'Api-Key': api_key,
+                                    headers={'Client-Id': str(marketplace_id), 'Api-Key': str(api_key),
                                             'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
         request_json = request_post.json()
         #print(request_json)
