@@ -66,7 +66,7 @@ def update_product_order(*args, **kwargs):
                                                 "financial_data": True,
                                             }
                                             },
-                                        headers={'Client-Id': ozon_ovner, 'Api-Key': api_key,
+                                        headers={'Client-Id': str(ozon_ovner), 'Api-Key': str(api_key),
                                                 'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
             request_json = request_post.json()
 
@@ -182,7 +182,7 @@ def update_product_order(*args, **kwargs):
                 # Товары
 
                 request_post = requests.post('https://api-seller.ozon.ru/v1/product/list',
-                                            headers={'Client-Id': ozon_ovner, 'Api-Key': api_key,
+                                            headers={'Client-Id': str(ozon_ovner), 'Api-Key': str(api_key),
                                                     'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
                 request_json = request_post.json()
 
@@ -197,7 +197,7 @@ def update_product_order(*args, **kwargs):
 
                         product_request = requests.post('https://api-seller.ozon.ru/v2/product/info',
                                                         json={"product_id": product_id_object['product_id']},
-                                                        headers={'Client-Id': ozon_ovner, 'Api-Key': api_key,
+                                                        headers={'Client-Id': str(ozon_ovner), 'Api-Key': str(api_key),
                                                                 'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
                         product_json_result = product_request.json()
                         product_json = product_json_result['result']
@@ -229,8 +229,8 @@ def update_product_order(*args, **kwargs):
 
                         return_query = requests.post('https://api-seller.ozon.ru/v2/returns/company/fbs',
                                                     json={"filter": {"product_name": "string"}},
-                                                    headers={'Client-Id': ozon_ovner,
-                                                            'Api-Key': api_key,
+                                                    headers={'Client-Id': str(ozon_ovner),
+                                                            'Api-Key': str(api_key),
                                                             'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
 
                         try:
@@ -278,7 +278,7 @@ def found_new_ozon_transaction(*args, **kwargs):
                                                 "page": 1,
                                                 "page_size": 10000
                                             },
-                                        headers={'Client-Id': ozon_ovner, 'Api-Key': api_key,
+                                        headers={'Client-Id': str(ozon_ovner), 'Api-Key': str(api_key),
                                                 'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
             request_json = request_post.json()
             if request_json.get('messege', None) == 'Invalid Api-Key, please contact support':

@@ -26,6 +26,7 @@ class WarehousFilterByList:
     """
 
     def actual_warehous(self, data: list, actual: bool):
+        print(actual)
         if actual == True:
             new_data = list()
             for value in data:

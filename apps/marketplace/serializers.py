@@ -21,7 +21,7 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
 
         api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list',
-                                      headers={'Client-Id': marketplace_id, 'Api-Key': api_key,
+                                      headers={'Client-Id': str(marketplace_id), 'Api-Key': str(api_key),
                                                'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
 
         if api_key_isset.status_code == 200:
@@ -79,7 +79,7 @@ class CreateMarketplaceSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
 
         api_key_isset = requests.post('https://api-seller.ozon.ru/v1/product/list',
-                                      headers={'Client-Id': marketplace_id, 'Api-Key': api_key,
+                                      headers={'Client-Id': str(marketplace_id), 'Api-Key': str(api_key),
                                                'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
 
         if api_key_isset.status_code == 200:

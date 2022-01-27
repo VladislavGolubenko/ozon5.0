@@ -395,9 +395,11 @@ def warehous_account_function(product, days):
     else:
         reorder_date = None
 
-    # average_profit_unit = product.summ_price -   None # Средняя прибыль единицы товара =  Цена - среднне(коммисии) - стоимость товара  (итого стоимость)
-    # Потенциальная прибыль остатков = Остатки на складе * Средняя прибыль единицы товара
-    # Прибыль перезаказа = Средняя прибыль единицы товара * необходимо заказать
+    average_profit_unit = float((product.lower_range_limit + product.upper_range_limit) / 2.0)  #Средняя прибыль единицы товара = (Нижняя граница диапазона + Верхняя граница) / 2
+    potential_profit_stocks = stock_balance * average_profit_unit # Остатки на складе * Средняя прибыль единицы товара
+    reorder_profit = None
+    if need_to_order is not None:
+        reorder_profit = average_profit_unit * need_to_order# Прибыль перезаказа = Средняя прибыль единицы товара * необходимо заказать
 
     data = {
         'preview': preview,  # Превью
@@ -418,12 +420,8 @@ def warehous_account_function(product, days):
         'status_of_product': status_of_product,  # Статус + 
         'reorder_date': reorder_date,  # Дата перезаказа +
         'offer_id': offer_id,
-        #'average_profit_unit': average_profit_unit, # Средняя прибыль единицы товара
-        # Параметр на согласовании:
-        # Средняя прибыль единицы товара
-
-        # Параметры, которые потерялись из-за средней прибыли единицы товара
-        # Прибыль перезаказа
-        # Потенциальная прибыль остатков
+        'average_profit_unit': average_profit_unit, # Средняя прибыль единицы товара
+        'potential_profit_stocks': potential_profit_stocks, # Потенциальная прибыль остатков
+        'reorder_profit': reorder_profit # Прибыль перезаказа
     }
     return data

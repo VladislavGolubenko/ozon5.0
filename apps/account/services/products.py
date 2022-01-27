@@ -128,7 +128,6 @@ class ProductsOzon:
                 volume_weight = product_json.get('volume_weight')
                 category_id = product_json.get('category_id')
                 category_json = CategoriesOzon.get_category_ozon(api_key, cliend_id, category_id)
-                print(category_json)
                 category_name = category_json.get("result")[0].get("title")
                 category_id_result = category_json.get("result")[0].get("category_id")
                 category = CategoriesOzon.get_category(category_id_result, category_name)
@@ -152,6 +151,7 @@ class ProductsOzon:
                 go_to_warehouse = ProductsOzon._get_count_product_return(api_key, cliend_id, name) + coming  # в пути на склад (поставки + возвращенные товары)
                 ozon_id = int(ozon_id)
                 product = Product.objects.filter(ozon_product_id=ozon_id).first()
+                
                 if product is not None:
                     #Обновление
                     #product.
@@ -164,11 +164,12 @@ class ProductsOzon:
                     product.way_to_warehous=go_to_warehouse
                     product.marketing_price=marketing_price
                     product.user_id=user
-                    product.offer_id = offer_id,
+                    product.offer_id = offer_id
                     product.is_visible=True
                     product.volume_weight= volume_weight
                     product.category = category
                     product.save()
+                    print(offer_id)
                 else:
                     Product.objects.create_product(
                         preview=preview, 
