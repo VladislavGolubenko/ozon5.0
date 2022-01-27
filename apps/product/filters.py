@@ -10,6 +10,7 @@ class ProductActualFilter(django_filters.FilterSet):
     def actual_products(self, queryset, actual: bool):
 
         if actual == True:
+
             return queryset.filter(stock_balance__gt=0)
         else:
             return queryset
@@ -28,8 +29,8 @@ class WarehousFilterByList:
         if actual == True:
             new_data = list()
             for value in data:
-                if value['stocks_cost_price'] is not None:
-                    if value['stocks_cost_price'] > 0:
+                if value['stock_balance'] is not None:
+                    if value['stock_balance'] > 0:
                         new_data.append(value)
             return new_data
         else:

@@ -153,7 +153,6 @@ class WarehouseAccountView(APIView):
 
         if actual is not None:
             actual = True if actual == "True" or actual == '1' else False
-            # queryset = Product.objects.filter(user_id=self.request.user.pk)
             datas = WarehousFilterByList.actual_warehous(self, data=datas, actual=actual)
 
         paginator = LimitOffsetPagination()
