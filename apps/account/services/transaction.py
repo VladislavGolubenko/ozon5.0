@@ -36,7 +36,7 @@ class TransactionOzon:
                                             "page": 1,
                                             "page_size": 100
                                         },
-                                    headers={'Client-Id': ozon_id, 'Api-Key': api_key,
+                                    headers={'Client-Id': str(ozon_id), 'Api-Key': str(api_key),
                                             'Content-Type': 'application/json', 'Host': 'api-seller.ozon.ru'})
         page_count = request_post.json().get("result").get("page_count")
         return page_count
