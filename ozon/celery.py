@@ -15,24 +15,24 @@ app.conf.beat_schedule = {
     # Подгрузка и обновление товаров
     'create_or_update_products_every_day': {
         'task': 'create_or_update_products_every_day',
-        'schedule': crontab(hour="*/1"),
+        'schedule': crontab(minute=0, hour="*/1"),
     },
     # Подгрузка заказов
     'create_or_update_orders_every_day': {
         'task': 'create_or_update_orders_every_day',
-        'schedule': crontab(hour="*/1"),
+        'schedule': crontab(minute=0, hour="*/1"),
         
     },
     # Подгрузка транзакций
     'create_or_update_transactions_every_day': {
         'task': 'create_or_update_transactions_every_day',
-        'schedule': crontab(hour="*/1"),
+        'schedule': crontab(minute=0, hour="*/1"),
     },
 
     # Поля комиссии и выручка у заказов
     'update_order_fields_every_day': {
         'task': 'update_order_fields_every_day',
-        'schedule': crontab(hour="*/1"),
+        'schedule': crontab(minute=0, hour="*/1"),
     }
 
 
